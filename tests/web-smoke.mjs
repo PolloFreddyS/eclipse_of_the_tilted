@@ -13,6 +13,8 @@ const LOCAL_CHROMIUM = "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome";
 const CHROMIUM = process.env.CHROMIUM_PATH ?? (fs.existsSync(LOCAL_CHROMIUM) ? LOCAL_CHROMIUM : undefined);
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".wasm": "application/wasm", ".pck": "application/octet-stream", ".png": "image/png" };
 
+// Si algo se cuelga (por ejemplo, el navegador deja de responder), la prueba falla en vez de esperar para siempre.
+const WATCHDOG = setTimeout(() => { console.log("FAIL  la prueba tardó más de 4 minutos"); process.exit(1); }, 4 * 60 * 1000);
 fs.mkdirSync(SHOTS, { recursive: true });
 const server = http.createServer((req, res) => {
   const file = path.join(ROOT, decodeURIComponent(new URL(req.url, "http://x").pathname).replace(/\/$/, "/index.html"));
@@ -161,4 +163,5 @@ await browser.close();
 server.close();
 const failed = results.filter((r) => !r.ok).length;
 console.log(`\n${results.length - failed}/${results.length} comprobaciones pasaron.`);
+clearTimeout(WATCHDOG);
 process.exit(failed ? 1 : 0);
