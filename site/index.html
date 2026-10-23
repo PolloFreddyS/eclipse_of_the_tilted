@@ -15,7 +15,7 @@
   <meta name="twitter:card" content="summary_large_image">
   <link rel="icon" href="assets/icon-32.png" sizes="32x32">
   <link rel="apple-touch-icon" href="assets/icon-180.png">
-  <link rel="preload" as="image" href="assets/poster-960.webp" imagesrcset="assets/poster-480.webp 480w, assets/poster-960.webp 960w" imagesizes="(min-width: 900px) 420px, 100vw">
+  <link rel="preload" as="image" href="assets/poster-960.webp" imagesrcset="assets/poster-480.webp 480w, assets/poster-960.webp 960w" imagesizes="100vw" media="(max-width: 899px)">
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Big+Shoulders+Display:wght@800;900&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap">
@@ -48,8 +48,12 @@
     <section class="hero" id="inicio">
       <div class="wrap hero-inner">
         <figure class="hero-art">
-          <img src="assets/poster-960.webp" srcset="assets/poster-480.webp 480w, assets/poster-960.webp 960w" sizes="(min-width: 900px) 420px, 100vw"
+          <picture>
+            <!-- En PC se usa el póster horizontal de fondo (CSS); así el vertical no se descarga. -->
+            <source media="(min-width: 900px)" srcset="data:image/gif;base64,R0lGODlhAQABAAAAACH5BAEKAAEALAAAAAABAAEAAAICTAEAOw==">
+            <img src="assets/poster-960.webp" srcset="assets/poster-480.webp 480w, assets/poster-960.webp 960w" sizes="100vw"
                width="960" height="1440" alt="Un pollito solo entre las ruinas de una catedral, bajo un eclipse que tapa el rosetón" fetchpriority="high">
+          </picture>
         </figure>
         <div class="hero-text">
           <p class="kicker">El Corral</p>

@@ -58,7 +58,7 @@ html[lang="es"] .lang [data-set-lang="es"], html[lang="en"] .lang [data-set-lang
 .hero-art img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; object-position: 50% 30%; max-height: 82vh;
   -webkit-mask-image: linear-gradient(#000 58%, transparent 96%); mask-image: linear-gradient(#000 58%, transparent 96%) }
 .hero-text { position: relative; margin-top: -26vh; padding: 0 var(--gutter-r) 48px var(--gutter); text-align: center; display: grid; justify-items: center; gap: 10px }
-.kicker { margin: 0; font: 800 14px/1 var(--f-ui); letter-spacing: .42em; text-transform: uppercase; color: var(--gold) }
+.kicker { margin: 0; font: 800 14px/1 var(--f-ui); letter-spacing: .42em; text-transform: uppercase; color: var(--gold); text-shadow: 0 1px 10px #000, 0 0 3px #000 }
 h1 { margin: 0; font: 400 clamp(40px, 11vw, 76px)/.98 var(--f-display); color: var(--bone); text-wrap: balance; text-shadow: 0 2px 24px rgba(0, 0, 0, .8) }
 .by { margin: 0; font-style: italic; color: var(--ash) }
 .tagline { margin: 6px 0 0; max-width: 32ch; color: var(--text); text-wrap: balance }
@@ -68,11 +68,14 @@ h1 { margin: 0; font: 400 clamp(40px, 11vw, 76px)/.98 var(--f-display); color: v
 .hero-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center }
 
 @media (min-width: 900px) {
-  .hero { background: radial-gradient(70% 90% at 75% 20%, var(--wine) 0%, transparent 70%) }
-  .hero-inner { grid-template-columns: 1fr 420px; align-items: center; gap: 56px; padding: 56px var(--gutter-r) 72px var(--gutter) }
-  .hero-art { order: 2 }
-  .hero-art img { max-height: none; aspect-ratio: 4 / 5; object-position: 50% 12%; border: 1px solid var(--line); -webkit-mask-image: none; mask-image: none; box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px #5a4424, 0 30px 80px -20px rgba(142, 27, 38, .6) }
-  .hero-text { margin-top: 0; padding: 0; text-align: left; justify-items: start }
+  /* En PC la portada usa el póster horizontal de fondo; el título va en la zona oscura de la izquierda. */
+  .hero { min-height: min(86vh, 760px); display: grid; align-items: center;
+    background: linear-gradient(90deg, rgba(11, 7, 8, .92) 0%, rgba(11, 7, 8, .55) 38%, rgba(11, 7, 8, 0) 62%),
+                linear-gradient(0deg, var(--bg) 0%, rgba(11, 7, 8, 0) 22%),
+                image-set(url("assets/poster-wide-1280.webp") 1x, url("assets/poster-wide-1672.webp") 2x) 62% 35% / cover no-repeat, var(--bg) }
+  .hero-inner { width: 100%; padding: 64px var(--gutter-r) 72px var(--gutter) }
+  .hero-art { display: none }
+  .hero-text { margin-top: 0; padding: 0; max-width: 520px; text-align: left; justify-items: start }
   .status::before { display: none }
   .hero-actions { justify-content: flex-start }
 }
