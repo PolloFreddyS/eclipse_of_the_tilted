@@ -13,8 +13,8 @@ No. Saves keep working across versions. In the browser, your save lives in that 
 ### When does the beta come out?
 There is no date yet. Follow the Corral Studios WhatsApp channel to hear about it first.
 
-### Is this an official League of Legends or Castlevania game?
-No. It is a fan work with no connection to Riot Games or Konami. The characters are inspired by the members of Los Gallos Sin Planes.
+### Is this an official League of Legends game?
+No. It is an original Corral Studios game with no connection to Riot Games. The characters are inspired by the members of Los Gallos Sin Planes.
 
 ### Why does Android warn me when installing the APK?
 Because the app does not come from the Play Store. The APK is only published on this page and in the project's GitHub releases; do not download it from anywhere else.

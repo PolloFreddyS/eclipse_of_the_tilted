@@ -2,7 +2,7 @@
 
 Un juego de **Corral Studios**. Metroidvania de fantasía oscura del universo de Los Gallos Sin Planes, hecho con Godot 4.
 
-Obra de fans sin fines de lucro. Sin relación con Riot Games ni Konami.
+Obra de fans sin fines de lucro. Sin relación con Riot Games.
 
 ## Estructura
 

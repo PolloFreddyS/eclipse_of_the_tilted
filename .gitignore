@@ -1,7 +1,5 @@
 build/
 .godot/
-*.gba
-*.sav
 node_modules/
 test-results/
 dist/

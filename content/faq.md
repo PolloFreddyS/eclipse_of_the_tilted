@@ -13,8 +13,8 @@ No. Las partidas siguen funcionando entre versiones. En el navegador, la partida
 ### ¿Cuándo sale la beta?
 Todavía no tiene fecha. Síguenos en el canal de WhatsApp de Corral Studios para enterarte primero.
 
-### ¿Es un juego oficial de League of Legends o de Castlevania?
-No. Es una obra de fans sin relación con Riot Games ni con Konami. Los personajes están inspirados en los miembros de Los Gallos Sin Planes.
+### ¿Es un juego oficial de League of Legends?
+No. Es un juego original de Corral Studios, sin relación con Riot Games. Los personajes están inspirados en los miembros de Los Gallos Sin Planes.
 
 ### ¿Por qué Android me avisa al instalar el APK?
 Porque la app no viene de la Play Store. El APK solo se publica en esta página y en los releases de GitHub del proyecto; no lo descargues de otros sitios.
