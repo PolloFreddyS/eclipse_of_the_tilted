@@ -8,7 +8,9 @@ import { chromium } from "playwright";
 
 const ROOT = path.resolve(process.argv[2] ?? "../build/web");
 const SHOTS = path.resolve(process.argv[3] ?? "../test-results");
-const CHROMIUM = process.env.CHROMIUM_PATH ?? "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome";
+// Si existe el Chromium preinstalado de este entorno se usa; en CI se usa el de Playwright.
+const LOCAL_CHROMIUM = "/opt/pw-browsers/chromium-1243/chrome-linux64/chrome";
+const CHROMIUM = process.env.CHROMIUM_PATH ?? (fs.existsSync(LOCAL_CHROMIUM) ? LOCAL_CHROMIUM : undefined);
 const MIME = { ".html": "text/html", ".js": "text/javascript", ".wasm": "application/wasm", ".pck": "application/octet-stream", ".png": "image/png" };
 
 fs.mkdirSync(SHOTS, { recursive: true });
