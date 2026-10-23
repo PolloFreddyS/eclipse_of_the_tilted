@@ -53,15 +53,20 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   await page.mouse.click(640, 360);
   const s0 = await state(page);
 
-  await page.keyboard.down("ArrowRight"); await sleep(1000); await page.keyboard.up("ArrowRight");
-  const s1 = await state(page);
-  check("Teclado: flecha derecha mueve al pollito", s1.player.x > s0.player.x + 80, `x ${s0.player.x.toFixed(0)} → ${s1.player.x.toFixed(0)}`);
-
-  await page.keyboard.down("Space"); await sleep(250);
-  const sAir = await state(page);
+  // Salto en la posición inicial, donde no hay plataformas encima.
+  // Se registra el punto más alto de todo el salto: una sola muestra puede llegar tarde.
+  const s1 = s0;
+  await page.keyboard.down("Space");
+  let peak = s1.player.y;
+  for (let t = 0; t < 12; t++) { await sleep(50); peak = Math.min(peak, (await state(page)).player.y); }
   await page.keyboard.up("Space"); await sleep(1200);
   const s2 = await state(page);
-  check("Teclado: espacio salta y vuelve al suelo", sAir.player.y < s1.player.y - 20 && s2.player.on_floor && s2.player.jumps === 1, `y ${s1.player.y.toFixed(0)} → ${sAir.player.y.toFixed(0)} → ${s2.player.y.toFixed(0)}`);
+  check("Teclado: espacio salta y vuelve al suelo", peak < s1.player.y - 40 && s2.player.on_floor && s2.player.jumps === 1, `y ${s1.player.y.toFixed(0)} → pico ${peak.toFixed(0)} → ${s2.player.y.toFixed(0)}`);
+
+  const sBefore = await state(page);
+  await page.keyboard.down("ArrowRight"); await sleep(1000); await page.keyboard.up("ArrowRight");
+  const sAfter = await state(page);
+  check("Teclado: flecha derecha mueve al pollito", sAfter.player.x > sBefore.player.x + 80, `x ${sBefore.player.x.toFixed(0)} → ${sAfter.player.x.toFixed(0)}`);
 
   // Caminar hasta el muñeco (x = 760) y golpearlo.
   await page.keyboard.down("ArrowRight");
