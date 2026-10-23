@@ -38,12 +38,19 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Prueba de humo (teclado, control, táctil)
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('tests/package-lock.json') }}
+      - name: Instalar navegador de pruebas
+        timeout-minutes: 4
         working-directory: tests
         run: |
           npm ci
-          npx playwright install --with-deps chromium
-          node web-smoke.mjs ../build/web ../test-results
+          npx playwright install chromium
+      - name: Prueba de humo (teclado, control, táctil)
+        working-directory: tests
+        run: node web-smoke.mjs ../build/web ../test-results
         timeout-minutes: 6
       - uses: actions/upload-artifact@v4
         if: always()
@@ -61,13 +68,21 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Prueba del sitio (releases de ejemplo, celular y PC)
+      - uses: actions/cache@v4
+        with:
+          path: ~/.cache/ms-playwright
+          key: playwright-${{ hashFiles('tests/package-lock.json') }}
+      - name: Instalar navegador de pruebas
+        timeout-minutes: 4
+        working-directory: tests
         run: |
           npm ci
-          cd tests
+          npx playwright install chromium
+      - name: Prueba del sitio (releases de ejemplo, celular y PC)
+        timeout-minutes: 4
+        run: |
           npm ci
-          npx playwright install --with-deps chromium
-          node site-test.mjs
+          cd tests && node site-test.mjs
       - name: Armar el sitio con los releases reales del repo (solo lectura)
         run: |
           node scripts/build.mjs
