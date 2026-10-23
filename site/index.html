@@ -1,0 +1,173 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>El Corral: Eclipse of the Tilted · Corral Studios</title>
+  <meta name="description" content="Metroidvania de fantasía oscura del universo de Los Gallos Sin Planes. Un juego de Corral Studios. Próximamente en el navegador y en Android.">
+  <meta name="theme-color" content="#0b0708">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="El Corral: Eclipse of the Tilted">
+  <meta property="og:description" content="Un juego de Corral Studios. Derrotar a tus amigos puede ser la única forma de salvarlos.">
+  <meta property="og:image" content="https://pollofreddys.github.io/eclipse_of_the_tilted/assets/og-image.jpg">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta name="twitter:card" content="summary_large_image">
+  <link rel="icon" href="assets/icon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="assets/icon-180.png">
+  <link rel="preload" as="image" href="assets/poster-960.webp" imagesrcset="assets/poster-480.webp 480w, assets/poster-960.webp 960w" imagesizes="(min-width: 900px) 420px, 100vw">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IM+Fell+English+SC&family=Big+Shoulders+Display:wght@800;900&family=Spectral:ital,wght@0,400;0,600;1,400&display=swap">
+  <link rel="stylesheet" href="style.css">
+  <script>
+    // Idioma antes de pintar para que no parpadee: español por defecto.
+    try { if (localStorage.getItem('lang') === 'en') document.documentElement.lang = 'en'; } catch (e) {}
+  </script>
+</head>
+<body>
+  <a class="skip" href="#juego"><span data-l="es">Saltar al contenido</span><span data-l="en">Skip to content</span></a>
+
+  <header class="topbar">
+    <div class="wrap topbar-inner">
+      <a class="brand" href="#inicio"><img src="assets/logo-corral-claro.png" alt="Corral Studios" width="180" height="76"></a>
+      <nav class="nav" aria-label="Secciones">
+        <a href="#juego"><span data-l="es">El juego</span><span data-l="en">The game</span></a>
+        <a href="#jugar"><span data-l="es">Jugar</span><span data-l="en">Play</span></a>
+        <a href="#versiones"><span data-l="es">Versiones</span><span data-l="en">Versions</span></a>
+        <a href="#faq"><span data-l="es">Preguntas</span><span data-l="en">FAQ</span></a>
+      </nav>
+      <div class="lang" role="group" aria-label="Idioma / Language">
+        <button type="button" data-set-lang="es">ES</button>
+        <button type="button" data-set-lang="en">EN</button>
+      </div>
+    </div>
+  </header>
+
+  <main>
+    <section class="hero" id="inicio">
+      <div class="wrap hero-inner">
+        <figure class="hero-art">
+          <img src="assets/poster-960.webp" srcset="assets/poster-480.webp 480w, assets/poster-960.webp 960w" sizes="(min-width: 900px) 420px, 100vw"
+               width="960" height="1440" alt="Un pollito solo entre las ruinas de una catedral, bajo un eclipse que tapa el rosetón" fetchpriority="high">
+        </figure>
+        <div class="hero-text">
+          <p class="kicker">El Corral</p>
+          <h1>Eclipse of the Tilted</h1>
+          <p class="by"><span data-l="es">un juego de Corral Studios</span><span data-l="en">a Corral Studios game</span></p>
+          <p class="tagline"><span data-l="es">Derrotar a tus amigos puede ser la única forma de salvarlos.</span><span data-l="en">Defeating your friends may be the only way to save them.</span></p>
+          <!--STATUS-->
+          <a class="btn btn-whatsapp" href="<!--WHATSAPP-->" rel="noopener"><span data-l="es">Síguenos en WhatsApp</span><span data-l="en">Follow us on WhatsApp</span></a>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="juego">
+      <div class="wrap narrow">
+        <h2><span data-l="es">El Corral ha caído</span><span data-l="en">The Corral has fallen</span></h2>
+        <div class="prose"><!--CONTENT:que-es--></div>
+      </div>
+    </section>
+
+    <section class="section" id="caracteristicas">
+      <div class="wrap">
+        <h2><span data-l="es">Lo que estamos construyendo</span><span data-l="en">What we are building</span></h2>
+        <p class="lead muted"><span data-l="es">El juego está en desarrollo; algunas características pueden cambiar.</span><span data-l="en">The game is in development; some features may change.</span></p>
+        <ul class="features">
+          <li><h3><span data-l="es">Almas heredadas</span><span data-l="en">Inherited souls</span></h3>
+            <p><span data-l="es">Los enemigos derrotados te dejan sus poderes.</span><span data-l="en">Defeated enemies leave you their powers.</span></p></li>
+          <li><h3><span data-l="es">Medidor de Tilt</span><span data-l="en">Tilt meter</span></h3>
+            <p><span data-l="es">Más poder a cambio de más riesgo.</span><span data-l="en">More power in exchange for more risk.</span></p></li>
+          <li><h3><span data-l="es">Santuarios de Discord</span><span data-l="en">Discord Sanctuaries</span></h3>
+            <p><span data-l="es">Descansa, guarda y vuelve a intentarlo.</span><span data-l="en">Rest, save and try again.</span></p></li>
+          <li><h3><span data-l="es">Recupera tus LP</span><span data-l="en">Recover your LP</span></h3>
+            <p><span data-l="es">Si caes, vuelve al lugar donde perdiste para recuperarlos.</span><span data-l="en">If you fall, go back to where you lost them to get them back.</span></p></li>
+          <li><h3><span data-l="es">Jefes con varias fases</span><span data-l="en">Multi-phase bosses</span></h3>
+            <p><span data-l="es">Inspirados en los campeones favoritos de cada Gallo.</span><span data-l="en">Inspired by each Gallo's favorite champions.</span></p></li>
+          <li><h3><span data-l="es">Decisiones y finales</span><span data-l="en">Choices and endings</span></h3>
+            <p><span data-l="es">No todos los Gallos son enemigos: rescata, recluta o enfrenta.</span><span data-l="en">Not every Gallo is an enemy: rescue, recruit or fight.</span></p></li>
+        </ul>
+      </div>
+    </section>
+
+    <section class="section" id="capturas">
+      <div class="wrap">
+        <h2><span data-l="es">Capturas</span><span data-l="en">Screenshots</span></h2>
+        <!--SCREENS-->
+      </div>
+    </section>
+
+    <section class="section" id="jugar">
+      <div class="wrap narrow">
+        <h2><span data-l="es">Jugar</span><span data-l="en">Play</span></h2>
+        <!--PLAY-->
+      </div>
+    </section>
+
+    <section class="section" id="versiones">
+      <div class="wrap narrow">
+        <h2><span data-l="es">Historial de versiones</span><span data-l="en">Version history</span></h2>
+        <div class="changelog"><!--CHANGELOG--></div>
+      </div>
+    </section>
+
+    <section class="section" id="como-jugar">
+      <div class="wrap narrow">
+        <h2><span data-l="es">Cómo jugar</span><span data-l="en">How to play</span></h2>
+        <div class="prose"><!--CONTENT:como-jugar--></div>
+        <h3 class="sub"><span data-l="es">Controles</span><span data-l="en">Controls</span></h3>
+        <div class="table-scroll">
+          <table class="controls">
+            <thead><tr>
+              <th scope="col"><span data-l="es">Acción</span><span data-l="en">Action</span></th>
+              <th scope="col"><span data-l="es">Teclado</span><span data-l="en">Keyboard</span></th>
+              <th scope="col"><span data-l="es">Control</span><span data-l="en">Controller</span></th>
+              <th scope="col"><span data-l="es">Táctil</span><span data-l="en">Touch</span></th>
+            </tr></thead>
+            <tbody>
+              <tr><th scope="row"><span data-l="es">Moverse</span><span data-l="en">Move</span></th><td><kbd>←</kbd> <kbd>→</kbd> / <kbd>A</kbd> <kbd>D</kbd></td><td><span data-l="es">Palanca o cruceta</span><span data-l="en">Stick or D-pad</span></td><td><span data-l="es">Cruceta</span><span data-l="en">D-pad</span></td></tr>
+              <tr><th scope="row"><span data-l="es">Saltar</span><span data-l="en">Jump</span></th><td><kbd>Espacio</kbd> / <kbd>K</kbd></td><td>A</td><td>Saltar</td></tr>
+              <tr><th scope="row"><span data-l="es">Atacar</span><span data-l="en">Attack</span></th><td><kbd>J</kbd> / <kbd>X</kbd></td><td>X</td><td>Golpe</td></tr>
+              <tr><th scope="row"><span data-l="es">Esquivar</span><span data-l="en">Dodge</span></th><td><kbd>Shift</kbd> / <kbd>L</kbd></td><td>B</td><td>Esquivar</td></tr>
+              <tr><th scope="row"><span data-l="es">Usar alma</span><span data-l="en">Use soul</span></th><td><kbd>U</kbd> / <kbd>C</kbd></td><td>Y</td><td>Alma</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="faq">
+      <div class="wrap narrow">
+        <h2><span data-l="es">Preguntas frecuentes</span><span data-l="en">FAQ</span></h2>
+        <div class="faq"><!--CONTENT:faq--></div>
+      </div>
+    </section>
+
+    <section class="section" id="creditos">
+      <div class="wrap narrow">
+        <h2><span data-l="es">Créditos</span><span data-l="en">Credits</span></h2>
+        <dl class="credits">
+          <div><dt><span data-l="es">Un juego de</span><span data-l="en">A game by</span></dt><dd>Corral Studios</dd></div>
+          <div><dt><span data-l="es">Con</span><span data-l="en">With</span></dt><dd>Los Gallos Sin Planes (Cake &amp; Others)</dd></div>
+          <div><dt><span data-l="es">Ciberseguridad y diseño</span><span data-l="en">Cybersecurity and design</span></dt><dd>divilight</dd></div>
+          <div><dt><span data-l="es">Motor</span><span data-l="en">Engine</span></dt><dd>Godot Engine</dd></div>
+        </dl>
+      </div>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <div class="wrap footer-inner">
+      <img src="assets/icono-96.png" alt="" width="48" height="48">
+      <p><span data-l="es">un juego de Corral Studios</span><span data-l="en">a Corral Studios game</span></p>
+      <p class="links">
+        <a href="<!--WHATSAPP-->" rel="noopener">WhatsApp</a>
+        <a href="https://github.com/<!--REPO-->" rel="noopener">GitHub</a>
+      </p>
+      <p class="fine"><span data-l="es">Obra de fans sin fines de lucro. Sin relación con Riot Games ni Konami. League of Legends es una marca de Riot Games. Página actualizada el</span><span data-l="en">Non-profit fan work. Not affiliated with Riot Games or Konami. League of Legends is a trademark of Riot Games. Page updated on</span> <!--BUILT_AT-->.</p>
+    </div>
+  </footer>
+
+  <script src="app.js" defer></script>
+</body>
+</html>

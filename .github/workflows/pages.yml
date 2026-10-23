@@ -1,0 +1,86 @@
+name: Publicar sitio
+
+# Reconstruye y publica el sitio en GitHub Pages cuando cambia main o cuando se
+# publica, edita o borra un release. Los borradores nunca aparecen en el sitio.
+# Si GitHub Pages queda con una versión vieja, se puede relanzar a mano:
+#   gh workflow run pages.yml
+on:
+  push:
+    branches: [main]
+  release:
+    types: [published, edited, deleted, unpublished, released, prereleased]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+env:
+  GODOT_VERSION: 4.7.2
+  GODOT_TOOLS_DIR: /home/runner/godot-tools
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: main  # los eventos de release corren sobre la etiqueta; el sitio siempre se arma con el código de main
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - name: Versión que se publica
+        id: latest
+        run: |
+          tag=$(node scripts/build.mjs --latest-tag)  # si la API falla, el paso falla aquí
+          echo "tag=$tag" >> "$GITHUB_OUTPUT"
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      - name: Código del juego de esa versión
+        if: steps.latest.outputs.tag != ''
+        uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.latest.outputs.tag }}
+          path: _release
+      - uses: actions/cache@v4
+        if: steps.latest.outputs.tag != ''
+        with:
+          path: |
+            /home/runner/godot-tools
+            /home/runner/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-v1
+      - name: Exportar el juego web de esa versión
+        if: steps.latest.outputs.tag != ''
+        run: |
+          scripts/ci/setup-godot.sh "$GODOT_VERSION"
+          mkdir -p build/play
+          cd _release/game
+          "$GODOT_TOOLS_DIR/godot" --headless --import
+          "$GODOT_TOOLS_DIR/godot" --headless --export-release "Web" "$GITHUB_WORKSPACE/build/play/index.html"
+      - name: Armar el sitio
+        run: node scripts/build.mjs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          PLAY_DIR: ${{ steps.latest.outputs.tag != '' && 'build/play' || '' }}
+      - uses: actions/configure-pages@v5
+      - uses: actions/upload-pages-artifact@v3
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v4

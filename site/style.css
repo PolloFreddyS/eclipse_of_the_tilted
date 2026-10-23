@@ -1,0 +1,167 @@
+/* Eclipse del vitral: la paleta y los títulos góticos de la catedral con el eclipse
+   y la tipografía condensada para la interfaz. Primero celular, una sola columna. */
+:root {
+  --bg: #0b0708;
+  --surface: #150e0e;
+  --line: #2e1f1c;
+  --wine: #3d0c13;
+  --blood: #8e1b26;
+  --gold: #c9a24a;
+  --flare: #f0d58c;
+  --bone: #ebe1cd;
+  --ash: #a39886;
+  --text: #d8cdb8;
+  --whatsapp: #1fa855;
+
+  --f-display: "IM Fell English SC", "Iowan Old Style", Georgia, serif;
+  --f-ui: "Big Shoulders Display", "Arial Narrow", "Roboto Condensed", sans-serif;
+  --f-body: "Spectral", Georgia, "Times New Roman", serif;
+
+  --gutter: max(16px, env(safe-area-inset-left, 0px));
+  --gutter-r: max(16px, env(safe-area-inset-right, 0px));
+  color-scheme: dark;
+}
+
+*, *::before, *::after { box-sizing: border-box }
+html { scroll-behavior: smooth; -webkit-text-size-adjust: 100% }
+@media (prefers-reduced-motion: reduce) { html { scroll-behavior: auto } }
+body { margin: 0; background: var(--bg); color: var(--text); font: 400 17px/1.6 var(--f-body); overflow-x: hidden }
+img { max-width: 100%; height: auto; display: block }
+a { color: var(--flare) }
+a:focus-visible, button:focus-visible, summary:focus-visible { outline: 2px solid var(--flare); outline-offset: 3px }
+
+/* Idioma: el contenido de los dos idiomas está en la página; se muestra el elegido. */
+html[lang="es"] [data-l="en"], html[lang="en"] [data-l="es"] { display: none !important }
+
+.wrap { max-width: 1120px; margin: 0 auto; padding-left: var(--gutter); padding-right: var(--gutter-r) }
+.narrow { max-width: 760px }
+.skip { position: absolute; left: -9999px }
+.skip:focus { left: 16px; top: 16px; z-index: 50; background: var(--bone); color: var(--bg); padding: 8px 12px }
+
+/* ---------- Barra superior ---------- */
+body::before { content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px); z-index: 11; background: var(--bg) }
+.topbar { position: sticky; top: env(safe-area-inset-top, 0px); z-index: 10; background: rgba(11, 7, 8, .88); backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px); border-bottom: 1px solid var(--line) }
+.topbar-inner { display: flex; align-items: center; gap: 16px; min-height: 56px }
+.brand img { height: 34px; width: auto }
+.nav { display: none; gap: 22px; margin-left: auto }
+.nav a, .lang button { font: 800 14px/1 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--ash); text-decoration: none }
+.nav a:hover { color: var(--bone) }
+.lang { display: flex; margin-left: auto; border: 1px solid var(--line) }
+.nav + .lang { margin-left: 8px }
+.lang button { background: none; border: 0; padding: 9px 11px; cursor: pointer; min-width: 44px; min-height: 36px }
+html[lang="es"] .lang [data-set-lang="es"], html[lang="en"] .lang [data-set-lang="en"] { background: var(--gold); color: var(--bg) }
+
+/* ---------- Portada ---------- */
+.hero { position: relative; overflow: hidden }
+.hero-inner { display: grid; padding-left: 0; padding-right: 0 }
+.hero-art { margin: 0; position: relative }
+.hero-art img { width: 100%; aspect-ratio: 2 / 3; object-fit: cover; object-position: 50% 30%; max-height: 82vh;
+  -webkit-mask-image: linear-gradient(#000 58%, transparent 96%); mask-image: linear-gradient(#000 58%, transparent 96%) }
+.hero-text { position: relative; margin-top: -26vh; padding: 0 var(--gutter-r) 48px var(--gutter); text-align: center; display: grid; justify-items: center; gap: 10px }
+.kicker { margin: 0; font: 800 14px/1 var(--f-ui); letter-spacing: .42em; text-transform: uppercase; color: var(--gold) }
+h1 { margin: 0; font: 400 clamp(40px, 11vw, 76px)/.98 var(--f-display); color: var(--bone); text-wrap: balance; text-shadow: 0 2px 24px rgba(0, 0, 0, .8) }
+.by { margin: 0; font-style: italic; color: var(--ash) }
+.tagline { margin: 6px 0 0; max-width: 32ch; color: var(--text); text-wrap: balance }
+.status { margin: 14px 0 6px; display: inline-flex; align-items: center; gap: 12px; font: 800 17px/1 var(--f-ui); letter-spacing: .28em; text-transform: uppercase; color: var(--flare) }
+.status::before, .status::after { content: ""; width: 28px; height: 1px; background: var(--gold) }
+.status-live { color: var(--bone) }
+.hero-actions { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center }
+
+@media (min-width: 900px) {
+  .hero { background: radial-gradient(70% 90% at 75% 20%, var(--wine) 0%, transparent 70%) }
+  .hero-inner { grid-template-columns: 1fr 420px; align-items: center; gap: 56px; padding: 56px var(--gutter-r) 72px var(--gutter) }
+  .hero-art { order: 2 }
+  .hero-art img { max-height: none; aspect-ratio: 4 / 5; object-position: 50% 12%; border: 1px solid var(--line); -webkit-mask-image: none; mask-image: none; box-shadow: 0 0 0 6px var(--bg), 0 0 0 7px #5a4424, 0 30px 80px -20px rgba(142, 27, 38, .6) }
+  .hero-text { margin-top: 0; padding: 0; text-align: left; justify-items: start }
+  .status::before { display: none }
+  .hero-actions { justify-content: flex-start }
+}
+
+/* ---------- Botones ---------- */
+.btn { display: inline-flex; align-items: center; justify-content: center; gap: 8px; min-height: 48px; padding: 12px 22px; font: 800 16px/1 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; text-decoration: none; border: 1px solid transparent; cursor: pointer }
+.btn-primary { background: var(--blood); color: var(--bone); border-color: #b4323e }
+.btn-primary:hover { background: #a3222e }
+.btn-ghost { color: var(--gold); border-color: var(--gold) }
+.btn-ghost:hover { background: rgba(201, 162, 74, .1) }
+.btn-whatsapp { background: var(--whatsapp); color: #04190c; margin-top: 4px }
+.btn-whatsapp:hover { background: #25c164 }
+
+/* ---------- Secciones ---------- */
+.section { padding: 56px 0; border-top: 1px solid var(--line) }
+h2 { margin: 0 0 18px; font: 400 clamp(28px, 6vw, 40px)/1.1 var(--f-display); color: var(--gold); text-wrap: balance }
+h2::after { content: ""; display: block; width: 56px; height: 1px; background: var(--blood); margin-top: 12px }
+h3 { color: var(--bone) }
+.sub { margin: 32px 0 12px; font: 800 18px/1.2 var(--f-ui); letter-spacing: .12em; text-transform: uppercase }
+.lead { margin: -4px 0 20px }
+.muted { color: var(--ash) }
+.prose p { margin: 0 0 14px }
+.prose strong { color: var(--bone) }
+
+.features { list-style: none; margin: 0; padding: 0; display: grid; gap: 12px }
+.features li { background: var(--surface); border-left: 2px solid var(--blood); padding: 14px 16px }
+.features h3 { margin: 0 0 4px; font: 800 19px/1.2 var(--f-ui); letter-spacing: .06em; text-transform: uppercase }
+.features p { margin: 0; color: var(--ash); font-size: 16px }
+@media (min-width: 640px) { .features { grid-template-columns: repeat(2, 1fr) } }
+@media (min-width: 980px) { .features { grid-template-columns: repeat(3, 1fr) } }
+
+.shots { display: grid; gap: 12px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)) }
+.shots img { width: 100%; aspect-ratio: 16 / 9; object-fit: cover; border: 1px solid var(--line); image-rendering: pixelated }
+
+/* ---------- Jugar ---------- */
+.panel { background: var(--surface); border: 1px solid var(--line); padding: 22px 18px }
+.panel h3 { margin: 0 0 8px; font: 400 24px/1.2 var(--f-display) }
+.panel p { margin: 0 0 16px }
+.latest-head { display: flex; flex-wrap: wrap; gap: 10px; align-items: center; margin-bottom: 8px }
+.play-options { display: grid; gap: 12px; margin: 16px 0 }
+@media (min-width: 640px) { .play-options { grid-template-columns: repeat(auto-fit, minmax(0, 1fr)) } }
+.option-card { border: 1px solid var(--line); padding: 16px; display: grid; gap: 8px; align-content: start; min-width: 0 }
+.option-card h4 { margin: 0; font: 800 18px/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; color: var(--bone) }
+.option-card p { margin: 0 }
+.file-meta, .hash { font-size: 13px; color: var(--ash); overflow-wrap: anywhere }
+code { font-family: ui-monospace, "SFMono-Regular", Menlo, Consolas, monospace; font-size: .86em }
+.tag { font: 800 12px/1 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--gold); border: 1px solid #5a4424; padding: 4px 7px }
+.tag-beta { color: var(--flare); border-color: var(--blood) }
+.link { color: var(--flare); font: 800 15px/1 var(--f-ui); letter-spacing: .1em; text-transform: uppercase; text-decoration: none }
+.link:hover { text-decoration: underline }
+
+/* ---------- Historial ---------- */
+.changelog { display: grid; gap: 14px }
+.release { border-bottom: 1px dotted #4a3528; padding-bottom: 16px }
+.release-head h3 { margin: 0 0 6px; font: 400 22px/1.2 var(--f-display) }
+.release-head h3 a { color: var(--bone); text-decoration: none }
+.release-meta { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; font-size: 14px; color: var(--ash) }
+.chip { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; border: 1px solid var(--line); padding: 2px 6px }
+.notes { font-size: 16px; overflow-wrap: anywhere }
+.notes ul { padding-left: 20px }
+.release-foot { display: flex; flex-wrap: wrap; gap: 16px }
+
+/* ---------- Cómo jugar ---------- */
+.table-scroll { overflow-x: auto; border: 1px solid var(--line) }
+.controls { width: 100%; border-collapse: collapse; font-size: 15px; min-width: 520px }
+.controls th, .controls td { padding: 10px 12px; text-align: left; border-bottom: 1px solid var(--line) }
+.controls thead th { font: 800 13px/1 var(--f-ui); letter-spacing: .12em; text-transform: uppercase; color: var(--gold); background: var(--surface) }
+.controls tbody th { color: var(--bone); font-weight: 600 }
+kbd { font-family: ui-monospace, Menlo, Consolas, monospace; font-size: 12px; border: 1px solid #4a3528; border-bottom-width: 2px; padding: 1px 5px; color: var(--bone) }
+
+/* ---------- Preguntas ---------- */
+.faq details { border-bottom: 1px solid var(--line) }
+.faq summary { cursor: pointer; padding: 14px 28px 14px 0; position: relative; color: var(--bone); font-weight: 600; list-style: none }
+.faq summary::-webkit-details-marker { display: none }
+.faq summary::after { content: "+"; position: absolute; right: 4px; top: 12px; color: var(--gold); font: 800 20px/1 var(--f-ui) }
+.faq details[open] summary::after { content: "−" }
+.faq details p { margin: 0 0 14px; color: var(--text) }
+
+/* ---------- Créditos y pie ---------- */
+.credits { margin: 0; display: grid; gap: 12px }
+.credits div { display: grid; gap: 2px }
+.credits dt { font: 800 13px/1.2 var(--f-ui); letter-spacing: .14em; text-transform: uppercase; color: var(--ash) }
+.credits dd { margin: 0; color: var(--bone); font-size: 18px }
+@media (min-width: 640px) { .credits { grid-template-columns: repeat(2, 1fr) } }
+
+.footer { border-top: 1px solid var(--line); padding: 36px 0 calc(36px + env(safe-area-inset-bottom, 0px)); text-align: center; color: var(--ash) }
+.footer-inner { display: grid; justify-items: center; gap: 8px }
+.footer p { margin: 0 }
+.footer .links { display: flex; gap: 18px; flex-wrap: wrap; justify-content: center }
+.footer .fine { font-size: 13px; max-width: 60ch }
+
+@media (min-width: 760px) { .nav { display: flex } }
