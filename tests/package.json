@@ -1,0 +1,11 @@
+{
+  "name": "eclipse-tests",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "web-smoke": "node web-smoke.mjs"
+  },
+  "devDependencies": {
+    "playwright": "1.56.1"
+  }
+}
