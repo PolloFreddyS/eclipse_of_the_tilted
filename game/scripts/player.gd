@@ -18,7 +18,7 @@ const DODGE_SPEED := 320.0
 const DODGE_TIME := 0.18
 const DODGE_COOLDOWN := 0.35
 const ATTACK_TIME := 0.22
-const ATTACK_REACH := Vector2(26, 22)
+const ATTACK_REACH := Vector2(30, 26)
 
 const MAX_HP := 100
 const HURT_TIME := 0.3         # sin control después de un golpe
@@ -28,7 +28,7 @@ const RESPAWN_DELAY := 1.4
 
 ## Hoja del Pollito (assets/pollito/pollito.png): nombre -> [fila, cuadros, cuadros por segundo, se repite]
 const SHEET := preload("res://assets/pollito/pollito.png")
-const FRAME := 48
+const FRAME := 64
 const ANIMATIONS := {
 	"idle": [0, 4, 6.0, true],
 	"run": [1, 6, 12.0, true],
@@ -72,15 +72,15 @@ func _ready() -> void:
 
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16, 26)
+	rect.size = Vector2(18, 32)
 	shape.shape = rect
-	shape.position = Vector2(0, -13)
+	shape.position = Vector2(0, -16)
 	add_child(shape)
 
 	# Los pies quedan en el origen del cuerpo; el cuerpo del pollito está algo a la derecha del centro del cuadro.
 	_sprite = AnimatedSprite2D.new()
 	_sprite.sprite_frames = SheetFrames.build(SHEET, FRAME, ANIMATIONS)
-	_sprite.offset = Vector2(-2, -FRAME / 2.0 + 1.0)
+	_sprite.offset = Vector2(-3, -FRAME / 2.0 + 1.0)
 	_sprite.play("idle")
 	add_child(_sprite)
 
@@ -236,7 +236,7 @@ func _strike() -> void:
 	shape.size = ATTACK_REACH
 	var query := PhysicsShapeQueryParameters2D.new()
 	query.shape = shape
-	query.transform = Transform2D(0.0, global_position + Vector2(facing * 20, -12))
+	query.transform = Transform2D(0.0, global_position + Vector2(facing * 22, -15))
 	query.collision_mask = LAYER_ENEMY
 	for hit in get_world_2d().direct_space_state.intersect_shape(query):
 		var target: Object = hit["collider"]

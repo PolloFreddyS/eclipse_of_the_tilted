@@ -5,7 +5,9 @@ cuadro, toma el color mayoritario de cada bloque y alinea todos los cuadros sobr
 lienzo fijo (pies abajo).
 
 Uso (Pollito: cuadros sueltos sobre magenta):
-  python3 scripts/art/sheet_to_frames.py <hoja.webp> <salida.png> <salida.json> \
+  python3 scripts/art/sheet_to_frames.py brand/pollito/hoja-detallada.webp \
+      game/assets/pollito/pollito.png game/assets/pollito/pollito.json \
+      --scale 3.5 --colors 24 --frame 64 --body-from-right 20 \
       --rows idle:4 run:6 jump:2 fall:2 attack:4 dodge:4 hurt:2
 Uso (King Chiki: hoja en cuadrícula de 4x8, dibujo detallado):
   python3 scripts/art/sheet_to_frames.py <hoja.webp> <salida.png> <salida.json> \
@@ -31,19 +33,28 @@ def is_background(a):
 def find_frames(a):
     fg = ndimage.binary_opening(~is_background(a), iterations=1)
     lab, _ = ndimage.label(ndimage.binary_dilation(fg, iterations=8))
-    boxes = []
+    raw = []
     for s in ndimage.find_objects(lab):
         y0, y1, x0, x1 = s[0].start, s[0].stop, s[1].start, s[1].stop
-        if (y1 - y0) * (x1 - x0) < 3000:
-            continue
-        # Dos cuadros pegados: se separan por la columna con menos contenido cerca del centro.
-        if (x1 - x0) > 1.6 * (y1 - y0):
-            cols = fg[y0:y1, x0:x1].sum(axis=0)
-            mid = (x1 - x0) // 2
-            cut = x0 + mid - 40 + int(np.argmin(cols[mid - 40: mid + 40]))
-            boxes += [(y0, y1, x0, cut), (y0, y1, cut, x1)]
-        else:
+        if (y1 - y0) * (x1 - x0) >= 3000:
+            raw.append((y0, y1, x0, x1))
+    # Cuadros pegados (por ejemplo, por un efecto de golpe que toca al vecino): si un bloque
+    # mide lo que varios cuadros normales, se divide por las columnas con menos dibujo.
+    typical = float(np.median([x1 - x0 for _, _, x0, x1 in raw]))
+    boxes = []
+    for y0, y1, x0, x1 in raw:
+        pieces = max(1, int(round((x1 - x0) / typical)))
+        if pieces == 1:
             boxes.append((y0, y1, x0, x1))
+            continue
+        cols = fg[y0:y1, x0:x1].sum(axis=0)
+        cuts = [x0]
+        for k in range(1, pieces):
+            guess = int((x1 - x0) * k / pieces)
+            lo, hi = max(guess - 40, 1), min(guess + 40, x1 - x0 - 1)
+            cuts.append(x0 + lo + int(np.argmin(cols[lo:hi])))
+        cuts.append(x1)
+        boxes += [(y0, y1, cuts[i], cuts[i + 1]) for i in range(pieces)]
     # Filas por posición vertical, y de izquierda a derecha dentro de cada fila.
     boxes.sort(key=lambda b: b[0])
     rows, current = [], [boxes[0]]
