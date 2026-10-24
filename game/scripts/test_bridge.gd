@@ -28,6 +28,7 @@ func _process(delta: float) -> void:
 			"y": player.global_position.y,
 			"on_floor": player.is_on_floor(),
 			"state": player.state(),
+			"anim": player.animation(),
 			"jumps": player.jumps,
 			"attacks": player.attacks,
 			"dodges": player.dodges,

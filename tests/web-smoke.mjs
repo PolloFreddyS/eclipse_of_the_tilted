@@ -30,7 +30,16 @@ function check(name, ok, detail = "") {
   console.log(`${ok ? "PASS" : "FAIL"}  ${name}${detail ? "  — " + detail : ""}`);
 }
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
-const state = (page) => page.evaluate(() => (window.__eclipse ? JSON.parse(window.__eclipse) : null));
+// Además de leer el estado, anota cada animación que se vio para comprobar que todas se reproducen.
+const seenAnims = new Set();
+const state = async (page) => {
+  const s = await page.evaluate(() => (window.__eclipse ? JSON.parse(window.__eclipse) : null));
+  if (s?.player?.anim) seenAnims.add(s.player.anim);
+  return s;
+};
+async function watchAnims(page, ms) {
+  for (let t = 0; t < ms; t += 40) { await state(page); await sleep(40); }
+}
 
 async function boot(context, label) {
   const page = await context.newPage();
@@ -59,12 +68,12 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   await page.keyboard.down("Space");
   let peak = s1.player.y;
   for (let t = 0; t < 12; t++) { await sleep(50); peak = Math.min(peak, (await state(page)).player.y); }
-  await page.keyboard.up("Space"); await sleep(1200);
+  await page.keyboard.up("Space"); await watchAnims(page, 1200);
   const s2 = await state(page);
   check("Teclado: espacio salta y vuelve al suelo", peak < s1.player.y - 40 && s2.player.on_floor && s2.player.jumps === 1, `y ${s1.player.y.toFixed(0)} → pico ${peak.toFixed(0)} → ${s2.player.y.toFixed(0)}`);
 
   const sBefore = await state(page);
-  await page.keyboard.down("ArrowRight"); await sleep(1000); await page.keyboard.up("ArrowRight");
+  await page.keyboard.down("ArrowRight"); await watchAnims(page, 1000); await page.keyboard.up("ArrowRight");
   const sAfter = await state(page);
   check("Teclado: flecha derecha mueve al pollito", sAfter.player.x > sBefore.player.x + 80, `x ${sBefore.player.x.toFixed(0)} → ${sAfter.player.x.toFixed(0)}`);
 
@@ -76,9 +85,13 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   const s3 = await state(page);
   check("Teclado: J golpea al muñeco", s3.dummy_hits >= 3, `golpes ${s3.dummy_hits}, ataques ${s3.player.attacks}`);
 
-  await page.keyboard.press("Shift"); await sleep(400);
+  await page.keyboard.press("j"); await watchAnims(page, 300);
+  await page.keyboard.press("Shift"); await watchAnims(page, 400);
   const s4 = await state(page);
   check("Teclado: Shift esquiva", s4.player.dodges === 1);
+  await watchAnims(page, 400);
+  const expected = ["idle", "run", "jump", "fall", "attack", "dodge"];
+  check("Teclado: se ven todas las animaciones del pollito", expected.every((a) => seenAnims.has(a)), [...seenAnims].join(", "));
   check("Teclado: se detecta 'Teclado'", s4.device === "Teclado");
   check("Teclado: botones táctiles ocultos en PC", s4.touch_visible === false);
 

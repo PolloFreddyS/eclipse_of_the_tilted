@@ -1,0 +1,33 @@
+{
+  "frame": 48,
+  "animations": {
+    "idle": {
+      "row": 0,
+      "frames": 4
+    },
+    "run": {
+      "row": 1,
+      "frames": 6
+    },
+    "jump": {
+      "row": 2,
+      "frames": 2
+    },
+    "fall": {
+      "row": 3,
+      "frames": 2
+    },
+    "attack": {
+      "row": 4,
+      "frames": 4
+    },
+    "dodge": {
+      "row": 5,
+      "frames": 4
+    },
+    "hurt": {
+      "row": 6,
+      "frames": 2
+    }
+  }
+}

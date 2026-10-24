@@ -30,7 +30,7 @@ var _jump_buffer := 0.0
 var _dodge_timer := 0.0
 var _dodge_cooldown := 0.0
 var _attack_timer := 0.0
-var _sprite: Sprite2D
+var _sprite: AnimatedSprite2D
 
 
 func _ready() -> void:
@@ -41,15 +41,16 @@ func _ready() -> void:
 
 	var shape := CollisionShape2D.new()
 	var rect := RectangleShape2D.new()
-	rect.size = Vector2(16, 24)
+	rect.size = Vector2(16, 26)
 	shape.shape = rect
-	shape.position = Vector2(0, -12)
+	shape.position = Vector2(0, -13)
 	add_child(shape)
 
-	_sprite = Sprite2D.new()
-	_sprite.texture = PixelArt.chick()
-	_sprite.scale = Vector2(2, 2)
-	_sprite.offset = Vector2(0, -8)
+	# Los pies quedan en el origen del cuerpo; el cuerpo del pollito está algo a la derecha del centro del cuadro.
+	_sprite = AnimatedSprite2D.new()
+	_sprite.sprite_frames = PollitoFrames.build()
+	_sprite.offset = Vector2(-2, -PollitoFrames.FRAME / 2.0 + 1.0)
+	_sprite.play("idle")
 	add_child(_sprite)
 
 
@@ -59,7 +60,7 @@ func state() -> String:
 	if _attack_timer > 0.0:
 		return "attack"
 	if not is_on_floor():
-		return "air"
+		return "jump" if velocity.y < 0.0 else "fall"
 	return "run" if absf(velocity.x) > 1.0 else "idle"
 
 
@@ -103,9 +104,19 @@ func _physics_process(delta: float) -> void:
 		_strike()
 
 	move_and_slide()
+	_animate()
 	_sprite.flip_h = facing < 0
 	_sprite.modulate.a = 0.5 if invulnerable else 1.0
-	queue_redraw()
+
+
+func animation() -> String:
+	return _sprite.animation
+
+
+func _animate() -> void:
+	var anim := state()
+	if _sprite.animation != anim:
+		_sprite.play(anim)
 
 
 func _strike() -> void:
@@ -119,9 +130,3 @@ func _strike() -> void:
 		var target: Object = hit["collider"]
 		if target.has_method("hit"):
 			target.hit(facing)
-
-
-func _draw() -> void:
-	if _attack_timer > 0.0:
-		var r := Rect2(Vector2(facing * 20, -12) - ATTACK_REACH / 2.0, ATTACK_REACH)
-		draw_rect(r, Color(1, 0.9, 0.6, 0.55))
