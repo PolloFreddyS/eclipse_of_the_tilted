@@ -2,11 +2,17 @@
 
 Pasos: separa cada cuadro, reduce la paleta, encuentra la cuadrícula de píxeles de cada
 cuadro, toma el color mayoritario de cada bloque y alinea todos los cuadros sobre un
-lienzo fijo (pies abajo, cuerpo centrado).
+lienzo fijo (pies abajo).
 
-Uso:
+Uso (Pollito: cuadros sueltos sobre magenta):
   python3 scripts/art/sheet_to_frames.py <hoja.webp> <salida.png> <salida.json> \
       --rows idle:4 run:6 jump:2 fall:2 attack:4 dodge:4 hurt:2
+Uso (King Chiki: hoja en cuadrícula de 4x8, dibujo detallado):
+  python3 scripts/art/sheet_to_frames.py <hoja.webp> <salida.png> <salida.json> \
+      --grid 4x8 --scale 2.6 --colors 28 --frame 96 --anchor feet --flip 3:2 \
+      --rows idle:4 walk:4 block:2 bash:4 slam:4 cast:3 hurt:2 defeated:2
+
+Necesita numpy, pillow y scipy.
 """
 import argparse
 import json
@@ -15,8 +21,6 @@ import numpy as np
 from PIL import Image
 from scipy import ndimage
 
-FRAME = 48          # tamaño del lienzo de cada cuadro, en píxeles del juego
-BODY_FROM_RIGHT = 15  # el cuerpo se alinea desde el pico (borde derecho), no desde la capa
 
 
 def is_background(a):
@@ -51,6 +55,21 @@ def find_frames(a):
             current.append(b)
     rows.append(sorted(current, key=lambda b: b[2]))
     return rows, fg
+
+
+def grid_frames(a, cols, rows, counts, margin=4):
+    """Cuadros de una hoja dividida en celdas iguales; se ignora el borde de cada celda."""
+    fg = ~is_background(a)
+    h, w = a.shape[0] / rows, a.shape[1] / cols
+    border = np.zeros_like(fg)
+    for r in range(rows + 1):
+        border[max(int(r * h) - margin, 0):int(r * h) + margin, :] = True
+    for c in range(cols + 1):
+        border[:, max(int(c * w) - margin, 0):int(c * w) + margin] = True
+    fg &= ~border
+    fg = ndimage.binary_opening(fg, iterations=1)
+    boxes = [[(int(r * h), int((r + 1) * h), int(c * w), int((c + 1) * w)) for c in range(n)] for r, n in enumerate(counts)]
+    return boxes, fg
 
 
 def kmeans(pixels, k, iters=25, seed=0):
@@ -105,11 +124,23 @@ def main():
     ap.add_argument('--rows', nargs='+', required=True, help='nombre:cuadros por fila, en orden')
     ap.add_argument('--scale', type=float, default=4.5, help='tamaño aproximado de un píxel del dibujo')
     ap.add_argument('--colors', type=int, default=12)
+    ap.add_argument('--grid', help='COLSxROWS si la hoja viene en celdas iguales')
+    ap.add_argument('--frame', type=int, default=48, help='tamaño del lienzo de cada cuadro')
+    ap.add_argument('--anchor', choices=['beak', 'feet'], default='beak',
+                    help='beak: alinea desde el borde derecho (Pollito); feet: centra los pies')
+    ap.add_argument('--body-from-right', type=int, default=15)
+    ap.add_argument('--flip', nargs='*', default=[], help='fila:columna (desde 0) de cuadros que miran al lado contrario')
     args = ap.parse_args()
+    FRAME = args.frame
+    flips = {tuple(int(v) for v in f.split(':')) for f in args.flip}
 
     a = np.asarray(Image.open(args.sheet).convert('RGB')).astype(int)
-    rows, fg = find_frames(a)
     spec = [(name, int(n)) for name, n in (r.split(':') for r in args.rows)]
+    if args.grid:
+        gc, gr = (int(v) for v in args.grid.lower().split('x'))
+        rows, fg = grid_frames(a, gc, gr, [n for _, n in spec])
+    else:
+        rows, fg = find_frames(a)
     counts = [len(r) for r in rows]
     if counts != [n for _, n in spec]:
         raise SystemExit(f'Se esperaban {[n for _, n in spec]} cuadros por fila y se encontraron {counts}')
@@ -133,13 +164,20 @@ def main():
     for r, ((name, n), boxes) in enumerate(zip(spec, rows)):
         for c, (y0, y1, x0, x1) in enumerate(boxes):
             lab, m = labels[y0:y1, x0:x1], fg[y0:y1, x0:x1]
-            oy, ox = best_grid(lab, m, args.scale)
+            # En dibujos de bloques grandes se busca la cuadrícula; en dibujos finos no hace falta.
+            oy, ox = best_grid(lab, m, args.scale) if args.scale >= 3 else (0, 0)
             small = downsample(lab, m, args.scale, oy, ox, bg)
             ys, xs = np.nonzero(small != bg)
             small = small[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
+            if (r, c) in flips:
+                small = small[:, ::-1]
             h, w = small.shape
             top = FRAME - h - 1
-            left = FRAME // 2 + BODY_FROM_RIGHT - w
+            if args.anchor == 'feet':
+                feet = np.nonzero((small[-max(h // 8, 2):] != bg).any(axis=0))[0]
+                left = FRAME // 2 - int(round(feet.mean()))
+            else:
+                left = FRAME // 2 + args.body_from_right - w
             left = min(max(left, 0), FRAME - w)
             top = max(top, 0)
             for j in range(min(h, FRAME)):
