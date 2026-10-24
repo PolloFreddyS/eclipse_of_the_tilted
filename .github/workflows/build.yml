@@ -27,7 +27,7 @@ jobs:
           path: |
             /home/runner/godot-tools
             /home/runner/.local/share/godot/export_templates
-          key: godot-${{ env.GODOT_VERSION }}-v1
+          key: godot-${{ env.GODOT_VERSION }}-v2
       - run: scripts/ci/setup-godot.sh "$GODOT_VERSION"
       - name: Exportar web
         working-directory: game
@@ -105,7 +105,7 @@ jobs:
           path: |
             /home/runner/godot-tools
             /home/runner/.local/share/godot/export_templates
-          key: godot-${{ env.GODOT_VERSION }}-v1
+          key: godot-${{ env.GODOT_VERSION }}-v2
       - run: scripts/ci/setup-godot.sh "$GODOT_VERSION"
       - uses: actions/setup-java@v4
         with:
@@ -140,3 +140,27 @@ jobs:
         with:
           name: apk-de-prueba
           path: build/android/eclipse-of-the-tilted.apk
+
+  windows:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/cache@v4
+        with:
+          path: |
+            /home/runner/godot-tools
+            /home/runner/.local/share/godot/export_templates
+          key: godot-${{ env.GODOT_VERSION }}-v2
+      - run: scripts/ci/setup-godot.sh "$GODOT_VERSION"
+      - name: Exportar versión de Windows
+        working-directory: game
+        run: |
+          mkdir -p ../build/windows
+          "$GODOT_TOOLS_DIR/godot" --headless --import
+          "$GODOT_TOOLS_DIR/godot" --headless --export-release "Windows" ../build/windows/EclipseOfTheTilted.exe
+          test -s ../build/windows/EclipseOfTheTilted.exe
+      - uses: actions/upload-artifact@v4
+        with:
+          name: windows-de-prueba
+          path: build/windows

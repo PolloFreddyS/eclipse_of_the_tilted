@@ -15,7 +15,7 @@ if [ ! -x "$TOOLS/godot" ]; then
 fi
 if [ ! -f "$TEMPLATES/version.txt" ]; then
   curl -sSL -o "$TOOLS/templates.tpz" "$BASE/Godot_v$V-stable_export_templates.tpz"
-  unzip -o -q -j "$TOOLS/templates.tpz" 'templates/web_nothreads_*' 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/version.txt' -d "$TEMPLATES"
+  unzip -o -q -j "$TOOLS/templates.tpz" 'templates/web_nothreads_*' 'templates/android_debug.apk' 'templates/android_release.apk' 'templates/windows_release_x86_64.exe' 'templates/version.txt' -d "$TEMPLATES"
   rm "$TOOLS/templates.tpz"
 fi
 "$TOOLS/godot" --version

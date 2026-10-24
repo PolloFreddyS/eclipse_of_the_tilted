@@ -1,12 +1,13 @@
 extends Node2D
 ## Zona marcada en el suelo: primero avisa (parpadea en rojo), después explota y daña
-## al Pollito si sigue dentro. Se usa en ¡POR AHÍ NO! y servirá para las Raíces del Tilt.
+## al Pollito si sigue dentro. Estilo "blast" para ¡POR AHÍ NO! y "roots" para las Raíces del Tilt.
 
 const BLAST_TIME := 0.25
 
 var radius := 26.0
 var warn_time := 0.8
 var damage := 25
+var style := "blast"
 
 var _t := 0.0
 var _blasted := false
@@ -45,6 +46,15 @@ func _draw() -> void:
 		draw_circle(Vector2.ZERO, radius, Color(0.56, 0.1, 0.15, pulse * 0.6))
 		draw_arc(Vector2.ZERO, radius * closing, 0.0, TAU, 32, Color(0.94, 0.84, 0.55, pulse), 2.0)
 		draw_set_transform(Vector2.ZERO)
+	elif style == "roots":
+		# Espinas oscuras que salen del suelo.
+		var p := clampf((_t - warn_time) / BLAST_TIME, 0.0, 1.0)
+		var fade := 1.0 - maxf(_t - warn_time - BLAST_TIME, 0.0) / 0.15
+		var h := 30.0 * minf(p * 2.0, 1.0)
+		for i in 3:
+			var x := -radius + radius * i
+			draw_colored_polygon(PackedVector2Array([Vector2(x - 4, 0), Vector2(x + 1, -h), Vector2(x + 5, 0)]), Color(0.3, 0.04, 0.09, fade))
+			draw_line(Vector2(x + 1, -h), Vector2(x + 1, -h + 6), Color(1.0, 0.4, 0.4, fade), 1.0)
 	else:
 		var p := clampf((_t - warn_time) / BLAST_TIME, 0.0, 1.0)
 		var fade := 1.0 - p

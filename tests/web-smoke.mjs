@@ -214,6 +214,21 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   const sBack = await state(page);
   check("Vida: reaparece en el Santuario con la vida llena", Math.abs(sBack.player.x - 150) < 4 && sBack.player.hp === 100, `x=${sBack.player.x.toFixed(0)} hp=${sBack.player.hp}`);
   await page.screenshot({ path: path.join(SHOTS, "vida-santuario.png") });
+
+  // Onda de la Democión Maldita, sin el jefe: saltándola no hace daño; quieto, sí.
+  await sleep(1200);  // termina la invulnerabilidad de la reaparición
+  await page.evaluate(() => window.__eclipseCmd("teleport", 400, 320));
+  await sleep(300);
+  await page.evaluate(() => window.__eclipseCmd("wave", 300, 328, 1));  // llega en ~0.5 s
+  await sleep(150);
+  await page.keyboard.down("Space"); await sleep(400); await page.keyboard.up("Space");
+  await sleep(700);
+  const hpJump = (await state(page)).player.hp;
+  await page.evaluate(() => window.__eclipseCmd("wave", 300, 328, 1));
+  await sleep(1000);
+  const hpStand = (await state(page)).player.hp;
+  check("Vida: la onda se puede saltar", hpJump === 100, `vida tras saltar=${hpJump}`);
+  check("Vida: quedarse quieto ante la onda sí hace daño", hpStand < hpJump, `vida quieto=${hpStand}`);
   check("Vida: sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
   await context.close();
 }
@@ -286,6 +301,60 @@ async function hitFromBehind(page) {
   await context.close();
 }
 {
+  // Fase II: transición al 50 %, sin escudo, Democión Maldita, Raíces del Tilt y Furia del Chiquito.
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const { page, errors } = await boot(context, "Jefe fase II", "?pruebas&sala=jefe");
+  await page.mouse.click(640, 360);
+  await page.keyboard.down("ArrowRight");
+  await waitFor(page, (s) => s.boss.state !== "waiting", 4000);
+  await page.keyboard.up("ArrowRight");
+  await page.evaluate(() => window.__eclipseCmd("boss_hp", 105));
+  await sleep(1700);  // termina la pausa inicial
+  await hitFromBehind(page);
+  const s1 = await state(page);
+  check("Fase II: al 50 % empieza la transición y grita", s1.boss.state === "transition" && s1.boss.speech.includes("OTRA VEZ"), `state=${s1.boss.state} hp=${s1.boss.hp}`);
+  await page.screenshot({ path: path.join(SHOTS, "jefe-transicion.png") });
+  const hpDuring = s1.boss.hp;
+  await hitFromBehind(page);
+  check("Fase II: durante la transición no recibe daño", (await state(page)).boss.hp === hpDuring);
+  const s2 = await waitFor(page, (s) => s.boss.phase === 2, 4000);
+  check("Fase II: termina la transición en la fase II", s2.boss.phase === 2, `fase=${s2.boss.phase}`);
+
+  // Sin escudo: de frente también le hace daño.
+  await sleep(200);
+  const s3 = await state(page);
+  await page.evaluate(([x]) => window.__eclipseCmd("teleport", x, 230), [s3.boss.x + s3.boss.facing * 40]);
+  const toward = s3.boss.facing > 0 ? "ArrowLeft" : "ArrowRight";
+  await page.keyboard.down(toward); await sleep(30); await page.keyboard.up(toward);
+  await page.keyboard.press("j"); await sleep(150);
+  const s4 = await state(page);
+  check("Fase II: sin escudo, de frente también le hace daño", s4.boss.hp < s3.boss.hp, `hp ${s3.boss.hp} → ${s4.boss.hp}`);
+
+  // Observa sus ataques (con la vida del Pollito siempre llena para que no se reinicie la pelea).
+  let sawWave = false, sawRoots = false;
+  const fury0 = s4.boss.fury;
+  let furyDone = false;
+  const t0 = Date.now();
+  while (Date.now() - t0 < 25000 && !(sawWave && sawRoots && furyDone)) {
+    await page.evaluate(() => window.__eclipseCmd("player_hp", 100));
+    const s = await state(page);
+    if (s.roots_warning > 0) { sawRoots = true; await page.screenshot({ path: path.join(SHOTS, "jefe-raices.png") }); }
+    if (s.boss.fury > fury0) furyDone = true;
+    if (s.waves.length > 0 && !sawWave) { sawWave = true; await page.screenshot({ path: path.join(SHOTS, "jefe-onda.png") }); }
+    await sleep(50);
+  }
+  check("Fase II: Democión Maldita lanza ondas por el suelo", sawWave);
+  check("Fase II: Raíces del Tilt avisan antes de salir", sawRoots);
+  check("Fase II: Furia del Chiquito (combo de 3 golpes)", furyDone);
+
+  await page.evaluate(() => window.__eclipseCmd("boss_hp", 5));
+  let s5 = await state(page);
+  for (let i = 0; i < 5 && s5.boss.state !== "defeated"; i++) { await sleep(600); await hitFromBehind(page); s5 = await state(page); }
+  check("Fase II: con 0 de vida queda derrotado", s5.boss.state === "defeated", `state=${s5.boss.state}`);
+  check("Fase II: sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await context.close();
+}
+{
   // Si el Pollito cae durante la pelea, todo vuelve a empezar desde el Santuario.
   const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
   const { page, errors } = await boot(context, "Jefe (reinicio)", "?pruebas&sala=jefe");
@@ -301,7 +370,7 @@ async function hitFromBehind(page) {
   await sleep(300);
   const s2 = await state(page);
   check("Jefe (reinicio): al caer vuelve al Santuario y la pelea se reinicia",
-    sDead.player.deaths === 1 && s2.player.hp === 100 && s2.boss.hp === 200 && s2.boss.state === "waiting" && s2.sealed === false,
+    sDead.player.deaths === 1 && s2.player.hp === 100 && s2.boss.hp === 200 && s2.boss.state === "waiting" && s2.boss.phase === 1 && s2.sealed === false,
     `muertes=${sDead.player.deaths} vida=${s2.player.hp} jefe=${s2.boss.hp} ${s2.boss.state} sellado=${s2.sealed}`);
   check("Jefe (reinicio): sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
   await context.close();

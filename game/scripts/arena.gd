@@ -47,6 +47,7 @@ func _ready() -> void:
 	hud.bind_boss(boss, "King Chiki", "El Último Protector")
 	player.respawned.connect(_reset_fight)
 	boss.defeated.connect(_on_boss_defeated)
+	boss.phase_changed.connect(func(_phase: int) -> void: hud.set_boss_title("El Chiquito Tilteado"))
 
 
 func _process(_delta: float) -> void:
@@ -67,8 +68,9 @@ func _reset_fight() -> void:
 	_set_sealed(false)
 	boss.reset()
 	hud.show_boss(false)
-	for mark in get_tree().get_nodes_in_group("ground_marks"):
-		mark.queue_free()
+	hud.set_boss_title("El Último Protector")
+	for node in get_tree().get_nodes_in_group("ground_marks") + get_tree().get_nodes_in_group("shockwaves"):
+		node.queue_free()
 
 
 func _on_boss_defeated() -> void:

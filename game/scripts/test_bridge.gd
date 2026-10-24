@@ -5,6 +5,7 @@ extends Node
 ##   window.__eclipseCmd("teleport", x, y)   lleva al Pollito a esa posición
 ##   window.__eclipseCmd("player_hp", n)     fija la vida del Pollito
 ##   window.__eclipseCmd("boss_hp", n)       fija la vida del jefe
+##   window.__eclipseCmd("wave", x, y, dir)  lanza una onda de la Democión Maldita
 ## Sin ?pruebas estos comandos no existen.
 
 const INTERVAL := 0.1
@@ -35,6 +36,11 @@ func _command(args: Array) -> void:
 			if player:
 				player.hp = int(args[1])
 				player.health_changed.emit(player.hp, player.MAX_HP)
+		"wave":
+			var wave: Node2D = preload("res://scripts/shockwave.gd").new()
+			wave.position = Vector2(float(args[1]), float(args[2]))
+			wave.direction = int(args[3])
+			get_tree().current_scene.add_child(wave)
 		"boss_hp":
 			if boss:
 				boss.hp = int(args[1])
@@ -76,9 +82,14 @@ func _process(delta: float) -> void:
 			"facing": boss.facing,
 			"blocked": boss.blocked_hits,
 			"counters": boss.counters,
+			"phase": boss.phase,
+			"fury": boss.fury_strikes,
 			"speech": boss.speech,
 		}
-		data["marks_warning"] = get_tree().get_nodes_in_group("ground_marks").filter(func(m: Node) -> bool: return m.is_warning()).size()
+		var warning := get_tree().get_nodes_in_group("ground_marks").filter(func(m: Node) -> bool: return m.is_warning())
+		data["marks_warning"] = warning.filter(func(m: Node) -> bool: return m.style == "blast").size()
+		data["roots_warning"] = warning.filter(func(m: Node) -> bool: return m.style == "roots").size()
+		data["waves"] = get_tree().get_nodes_in_group("shockwaves").map(func(w: Node) -> Array: return [w.global_position.x, w.direction])
 		data["sealed"] = get_tree().current_scene.get("sealed")
 	var touch := get_tree().get_first_node_in_group("touch_controls")
 	if touch:

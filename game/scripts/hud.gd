@@ -30,6 +30,10 @@ func bind_boss(boss: Node, boss_name: String, title: String) -> void:
 	boss.health_changed.connect(func(hp: int, max_hp: int) -> void: _boss_hp = float(hp) / max_hp)
 
 
+func set_boss_title(title: String) -> void:
+	_boss_title = title
+
+
 func show_boss(on: bool) -> void:
 	_boss_visible = on
 	if on:
