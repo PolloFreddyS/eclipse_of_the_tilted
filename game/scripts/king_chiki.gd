@@ -9,17 +9,19 @@ extends CharacterBody2D
 ##
 ## Transición (50 %): intenta curarse, la magia falla y el Tilt lo consume.
 ##
-## Fase II "El Chiquito Tilteado" (50 %–0 %), agresiva, sin escudo:
+## Fase II "El Chiquito Tilteado" (50 %–0 %), agresiva, sin escudo y dañina al tocarlo:
 ## - Democión Maldita: golpe al suelo que lanza ondas hacia ambos lados (hay que saltarlas).
 ## - Raíces del Tilt: espinas en fila hacia el Pollito, cada una con su aviso.
 ## - Furia del Chiquito: tres golpes seguidos y una apertura larga al final.
 
 signal health_changed(hp: int, max_hp: int)
+signal struck          # recibió un golpe del Pollito (para la pausa de impacto)
 signal phase_changed(phase: int)
 signal defeated
 
 const GroundMark := preload("res://scripts/ground_mark.gd")
 const Shockwave := preload("res://scripts/shockwave.gd")
+const Vfx := preload("res://scripts/vfx.gd")
 
 ## Hoja de King Chiki (assets/king_chiki/king_chiki.png). Dibujado mirando a la izquierda.
 const SHEET := preload("res://assets/king_chiki/king_chiki.png")
@@ -47,12 +49,14 @@ void fragment() {
 }
 """
 
-const MAX_HP := 200
+const MAX_HP := 260
 const GRAVITY := 980.0
 const NEAR := 80.0               # a esta distancia prefiere el golpe de escudo
 const BASH_ACTIVE := 0.15
 const BASH_REACH := Vector2(58, 44)
 const BASH_DAMAGE := 30
+const BASH_DAMAGE_TILTED := 35
+const CONTACT_DAMAGE := 15        # en la fase II, tocarlo duele
 const BASH_FORCE := 1.6
 const BASH_LUNGE := 160.0
 const CAST_TIME := 1.1
@@ -64,20 +68,21 @@ const TRANSITION_TIME := 2.4
 const CORRUPTION := 0.75          # cuánto lo tiñe el Tilt en la fase II (1.0 lo vuelve una silueta)
 const SLAM_WINDUP := 0.7
 const SLAM_RECOVER := 0.9
-const ROOTS := 6
-const ROOT_STEP := 34.0
-const ROOT_DELAY := 0.16
+const ROOTS := 9
+const ROOT_STEP := 32.0
+const ROOT_DELAY := 0.1
+const ROOT_WARN := 0.5
 const FURY_HITS := 3
-const FURY_WINDUP := 0.28
-const FURY_GAP := 0.2
-const FURY_RECOVER := 1.3
+const FURY_WINDUP := 0.24
+const FURY_GAP := 0.12
+const FURY_RECOVER := 0.9
 
 ## Ajustes por fase: la fase II es más rápida y ya no se cubre.
 const PHASES := {
-	1: {"walk": 40.0, "turn": 0.5, "windup": 0.55, "recover": 0.8, "rest": 0.9,
+	1: {"walk": 45.0, "turn": 0.45, "windup": 0.5, "recover": 0.7, "rest": 0.7,
 		"pattern": ["bash", "cast", "bash", "bash", "cast"]},
-	2: {"walk": 70.0, "turn": 0.3, "windup": 0.4, "recover": 0.6, "rest": 0.5,
-		"pattern": ["slam", "fury", "roots", "fury", "slam", "roots"]},
+	2: {"walk": 95.0, "turn": 0.2, "windup": 0.35, "recover": 0.45, "rest": 0.25,
+		"pattern": ["slam", "fury", "cast", "roots", "fury", "slam", "fury", "roots"]},
 }
 
 const LINES := {
@@ -195,6 +200,7 @@ func hit(from_dir: int, damage: int) -> void:
 	hp = max(hp - damage, 0)
 	_flash = 0.12
 	health_changed.emit(hp, MAX_HP)
+	struck.emit()
 	if hp == 0:
 		_set_state(State.DEFEATED, 0.0)
 		speech = ""
@@ -319,6 +325,9 @@ func _physics_process(delta: float) -> void:
 				_set_state(State.IDLE, _cfg("rest"))
 
 	_tilt.set_shader_parameter("amount", _corruption)
+	if phase == 2 and state != State.DEFEATED and player and absf(dx) < 22.0 \
+			and absf(player.global_position.y - global_position.y) < 50.0:
+		player.hurt(CONTACT_DAMAGE, global_position.x)
 	move_and_slide()
 	_animate()
 	queue_redraw()
@@ -390,7 +399,7 @@ func _spawn_root() -> void:
 	var mark := GroundMark.new()
 	mark.style = "roots"
 	mark.radius = 14.0
-	mark.warn_time = 0.6
+	mark.warn_time = ROOT_WARN
 	mark.damage = 20
 	mark.position = Vector2(_roots_x, global_position.y)
 	get_parent().add_child(mark)
@@ -400,6 +409,9 @@ func _spawn_root() -> void:
 
 
 func _slam() -> void:
+	Vfx.spawn(get_parent(), global_position, "ring", Color(1.0, 0.3, 0.25), 1, 1.2, 0.4)
+	Vfx.spawn(get_parent(), global_position, "dust", Color.WHITE, 1, 1.0, 0.5)
+	_shake(6.0, 0.35)
 	for dir in [-1, 1]:
 		var wave := Shockwave.new()
 		wave.direction = dir
@@ -414,10 +426,19 @@ func _strike() -> void:
 	query.shape = shape
 	query.transform = Transform2D(0.0, global_position + Vector2(facing * 36, -22))
 	query.collision_mask = 1 << 2  # capa 3: el jugador
+	var slash := Color(0.95, 0.82, 0.45) if phase == 1 else Color(1.0, 0.25, 0.25)
+	Vfx.spawn(get_parent(), global_position + Vector2(facing * 34, -26), "slash", slash, facing, 1.4, 0.2)
+	_shake(2.0, 0.12)
 	for hit in get_world_2d().direct_space_state.intersect_shape(query):
 		var target: Object = hit["collider"]
 		if target.has_method("hurt"):
-			target.hurt(BASH_DAMAGE, global_position.x, BASH_FORCE)
+			target.hurt(BASH_DAMAGE if phase == 1 else BASH_DAMAGE_TILTED, global_position.x, BASH_FORCE)
+
+
+func _shake(strength: float, seconds: float) -> void:
+	var room := get_parent()
+	if room.has_method("shake"):
+		room.shake(strength, seconds)
 
 
 func _animate() -> void:

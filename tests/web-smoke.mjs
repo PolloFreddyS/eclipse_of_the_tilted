@@ -186,14 +186,13 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   const s0 = await state(page);
   check("Vida: tocar el Santuario lo guarda como punto de reaparición", Math.abs(s0.player.respawn_x - 150) < 1 && s0.player.hp === 100, `respawn_x=${s0.player.respawn_x}`);
 
-  // Justo antes de las espinas (x 1040-1104), caminando hacia ellas.
-  await page.evaluate(() => window.__eclipseCmd("teleport", 1010, 320));
-  await sleep(300);
-  await page.keyboard.down("ArrowRight");
+  // Se pone sobre las espinas (x 1040-1104) una y otra vez hasta caer.
   const timeline = [];
   let lastHp = 100, sawHurt = false;
   const t0 = Date.now();
+  let lastTeleport = 0;
   while (Date.now() - t0 < 12000) {
+    if (Date.now() - lastTeleport > 250) { await page.evaluate(() => window.__eclipseCmd("teleport", 1072, 320)); lastTeleport = Date.now(); }
     const s = await state(page);
     if (s.player.anim === "hurt") sawHurt = true;
     if (s.player.hp < lastHp) timeline.push({ t: Date.now() - t0, hp: s.player.hp, x: s.player.x });
@@ -201,7 +200,6 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
     if (s.player.deaths >= 1) break;
     await sleep(30);
   }
-  await page.keyboard.up("ArrowRight");
   check("Vida: las espinas quitan vida y se ve la animación de daño", timeline.length > 0 && timeline[0].hp === 75 && sawHurt, timeline.map((e) => e.hp).join(" → "));
   const gaps = timeline.slice(1).map((e, i) => e.t - timeline[i].t);
   check("Vida: después de un golpe hay invulnerabilidad (golpes separados)", gaps.every((g) => g >= 700), `separación ms: ${gaps.join(", ")}`);
@@ -263,7 +261,7 @@ async function hitFromBehind(page) {
   await page.evaluate(([x]) => window.__eclipseCmd("teleport", x, 230), [s1.boss.x - 40]);
   for (let i = 0; i < 4; i++) { await page.keyboard.press("j"); await sleep(240); }
   const s2 = await state(page);
-  check("Jefe: de frente el escudo bloquea (no pierde vida)", s2.boss.hp === 200 && s2.boss.blocked >= 4, `hp=${s2.boss.hp} bloqueados=${s2.boss.blocked}`);
+  check("Jefe: de frente el escudo bloquea (no pierde vida)", s2.boss.hp === 260 && s2.boss.blocked >= 4, `hp=${s2.boss.hp} bloqueados=${s2.boss.blocked}`);
   check("Jefe: tras muchos golpes al escudo grita y contraataca", s2.boss.counters >= 1 && s2.boss.speech.includes("APRENDE"), s2.boss.speech);
   const s3 = await waitFor(page, (s) => s.player.hp < 100, 2500);
   check("Jefe: el golpe de escudo le hace daño al Pollito", s3.player.hp < 100, `vida del Pollito=${s3.player.hp}`);
@@ -370,7 +368,7 @@ async function hitFromBehind(page) {
   await sleep(300);
   const s2 = await state(page);
   check("Jefe (reinicio): al caer vuelve al Santuario y la pelea se reinicia",
-    sDead.player.deaths === 1 && s2.player.hp === 100 && s2.boss.hp === 200 && s2.boss.state === "waiting" && s2.boss.phase === 1 && s2.sealed === false,
+    sDead.player.deaths === 1 && s2.player.hp === 100 && s2.boss.hp === 260 && s2.boss.state === "waiting" && s2.boss.phase === 1 && s2.sealed === false,
     `muertes=${sDead.player.deaths} vida=${s2.player.hp} jefe=${s2.boss.hp} ${s2.boss.state} sellado=${s2.sealed}`);
   check("Jefe (reinicio): sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
   await context.close();

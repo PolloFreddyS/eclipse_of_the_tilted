@@ -2,6 +2,7 @@ extends CharacterBody2D
 ## El Pollito Sin Nombre: correr, saltar, atacar, esquivar, recibir daño y reaparecer.
 
 signal health_changed(hp: int, max_hp: int)
+signal damaged
 signal died
 signal respawned
 
@@ -31,7 +32,7 @@ const SHEET := preload("res://assets/pollito/pollito.png")
 const FRAME := 64
 const ANIMATIONS := {
 	"idle": [0, 4, 6.0, true],
-	"run": [1, 6, 12.0, true],
+	"run": [1, 6, 14.0, true],
 	"jump": [2, 2, 8.0, false],
 	"fall": [3, 2, 8.0, true],
 	"attack": [4, 4, 18.0, false],
@@ -100,6 +101,7 @@ func hurt(amount: int, from_x: float, force := 1.0) -> bool:
 		return false
 	hp = max(hp - amount, 0)
 	health_changed.emit(hp, MAX_HP)
+	damaged.emit()
 	var away := 1.0 if global_position.x >= from_x else -1.0
 	velocity = Vector2(KNOCKBACK.x * away * force, KNOCKBACK.y)
 	_hurt_timer = HURT_TIME

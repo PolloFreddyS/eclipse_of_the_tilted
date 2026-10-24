@@ -47,6 +47,7 @@ func _ready() -> void:
 	hud.bind_boss(boss, "King Chiki", "El Último Protector")
 	player.respawned.connect(_reset_fight)
 	boss.defeated.connect(_on_boss_defeated)
+	boss.struck.connect(func() -> void: hitstop(0.04))
 	boss.phase_changed.connect(func(_phase: int) -> void: hud.set_boss_title("El Chiquito Tilteado"))
 
 

@@ -32,6 +32,9 @@ func _process(delta: float) -> void:
 
 
 func _blast() -> void:
+	var room := get_parent()
+	if style == "blast" and room.has_method("shake"):
+		room.shake(3.0, 0.2)
 	var player := get_tree().get_first_node_in_group("player")
 	if player and absf(player.global_position.x - global_position.x) <= radius \
 			and player.global_position.y > global_position.y - 48.0:
@@ -50,13 +53,17 @@ func _draw() -> void:
 		# Espinas oscuras que salen del suelo.
 		var p := clampf((_t - warn_time) / BLAST_TIME, 0.0, 1.0)
 		var fade := 1.0 - maxf(_t - warn_time - BLAST_TIME, 0.0) / 0.15
-		var h := 30.0 * minf(p * 2.0, 1.0)
+		var h := 40.0 * minf(p * 2.0, 1.0)
 		for i in 3:
 			var x := -radius + radius * i
-			draw_colored_polygon(PackedVector2Array([Vector2(x - 4, 0), Vector2(x + 1, -h), Vector2(x + 5, 0)]), Color(0.3, 0.04, 0.09, fade))
-			draw_line(Vector2(x + 1, -h), Vector2(x + 1, -h + 6), Color(1.0, 0.4, 0.4, fade), 1.0)
+			var tip := h * (1.0 if i == 1 else 0.75)
+			draw_colored_polygon(PackedVector2Array([Vector2(x - 5, 0), Vector2(x + 1, -tip), Vector2(x + 6, 0)]), Color(0.45, 0.05, 0.12, fade))
+			draw_line(Vector2(x + 1, -tip), Vector2(x + 1, -tip + 10), Color(1.0, 0.55, 0.5, fade), 2.0)
 	else:
 		var p := clampf((_t - warn_time) / BLAST_TIME, 0.0, 1.0)
 		var fade := 1.0 - p
-		draw_rect(Rect2(-radius, -48.0 * (0.4 + 0.6 * p), radius * 2.0, 48.0 * (0.4 + 0.6 * p)), Color(0.94, 0.84, 0.55, 0.5 * fade))
-		draw_circle(Vector2(0, -6), radius * (0.6 + 0.6 * p), Color(0.56, 0.1, 0.15, 0.6 * fade))
+		# Columna de luz que sube desde la marca.
+		var h := 90.0 * (0.5 + 0.5 * p)
+		draw_rect(Rect2(-radius, -h, radius * 2.0, h), Color(0.94, 0.84, 0.55, 0.45 * fade))
+		draw_rect(Rect2(-radius * 0.4, -h, radius * 0.8, h), Color(1.0, 0.97, 0.85, 0.8 * fade))
+		draw_circle(Vector2(0, -6), radius * (0.6 + 0.6 * p), Color(0.8, 0.15, 0.2, 0.6 * fade))

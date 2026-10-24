@@ -11,7 +11,10 @@ var room_size := Vector2(480, 270)
 var blocks: Array[Rect2] = []
 var player: CharacterBody2D
 var hud: Control
+var camera: Camera2D
 var _debug: Label
+var _shake := 0.0
+var _shake_strength := 0.0
 
 
 func build_blocks() -> void:
@@ -32,7 +35,7 @@ func spawn_player(at: Vector2) -> void:
 	player.position = at
 	add_child(player)
 
-	var camera := Camera2D.new()
+	camera = Camera2D.new()
 	camera.limit_left = 0
 	camera.limit_top = 0
 	camera.limit_right = int(room_size.x)
@@ -45,12 +48,39 @@ func spawn_player(at: Vector2) -> void:
 	hud = Hud.new()
 	ui.add_child(hud)
 	hud.bind(player)
+	player.damaged.connect(func() -> void:
+		shake(4.0, 0.25)
+		hitstop(0.08))
 	_debug = Label.new()
 	_debug.position = Vector2(10, 22)
 	_debug.add_theme_font_size_override("font_size", 8)
 	_debug.modulate.a = 0.6
 	ui.add_child(_debug)
 	ui.add_child(TouchControls.new())
+
+
+## Sacude la cámara (golpes fuertes, impactos en el suelo).
+func shake(strength: float, seconds: float) -> void:
+	_shake = maxf(_shake, seconds)
+	_shake_strength = maxf(_shake_strength, strength)
+
+
+## Congela la acción un instante para que el golpe se sienta.
+func hitstop(seconds: float) -> void:
+	Engine.time_scale = 0.05
+	await get_tree().create_timer(seconds, true, false, true).timeout
+	Engine.time_scale = 1.0
+
+
+func _physics_process(delta: float) -> void:
+	if camera == null:
+		return
+	if _shake > 0.0:
+		_shake = maxf(_shake - delta, 0.0)
+		camera.offset = Vector2(randf_range(-1, 1), randf_range(-1, 1)) * _shake_strength * (_shake / 0.25 if _shake < 0.25 else 1.0)
+	else:
+		_shake_strength = 0.0
+		camera.offset = Vector2.ZERO
 
 
 func set_debug(text: String) -> void:

@@ -7,7 +7,7 @@ lienzo fijo (pies abajo).
 Uso (Pollito: cuadros sueltos sobre magenta):
   python3 scripts/art/sheet_to_frames.py brand/pollito/hoja-detallada.webp \
       game/assets/pollito/pollito.png game/assets/pollito/pollito.json \
-      --scale 3.5 --colors 24 --frame 64 --body-from-right 20 \
+      --scale 3.5 --colors 24 --frame 64 --body-from-right 20 --min-cover 0.3 \
       --rows idle:4 run:6 jump:2 fall:2 attack:4 dodge:4 hurt:2
 Uso (King Chiki: hoja en cuadrícula de 4x8, dibujo detallado):
   python3 scripts/art/sheet_to_frames.py <hoja.webp> <salida.png> <salida.json> \
@@ -114,7 +114,7 @@ def best_grid(labels, mask, scale):
     return best[1], best[2]
 
 
-def downsample(labels, mask, scale, oy, ox, background):
+def downsample(labels, mask, scale, oy, ox, background, min_cover=0.5):
     ys = np.arange(oy, labels.shape[0] - scale / 2, scale)
     xs = np.arange(ox, labels.shape[1] - scale / 2, scale)
     out = np.full((len(ys), len(xs)), background)
@@ -122,7 +122,7 @@ def downsample(labels, mask, scale, oy, ox, background):
         for i, x in enumerate(xs):
             sl = (slice(int(y), int(y + scale)), slice(int(x), int(x + scale)))
             m = mask[sl]
-            if m.mean() >= 0.5:  # más de la mitad del bloque es personaje
+            if m.mean() >= min_cover:  # parte del bloque que debe ser personaje para dibujarlo
                 out[j, i] = np.bincount(labels[sl][m]).argmax()
     return out
 
@@ -141,6 +141,8 @@ def main():
                     help='beak: alinea desde el borde derecho (Pollito); feet: centra los pies')
     ap.add_argument('--body-from-right', type=int, default=15)
     ap.add_argument('--flip', nargs='*', default=[], help='fila:columna (desde 0) de cuadros que miran al lado contrario')
+    ap.add_argument('--min-cover', type=float, default=0.5,
+                    help='parte de un bloque que debe ser dibujo; más bajo conserva líneas finas (patas)')
     args = ap.parse_args()
     FRAME = args.frame
     flips = {tuple(int(v) for v in f.split(':')) for f in args.flip}
@@ -177,7 +179,7 @@ def main():
             lab, m = labels[y0:y1, x0:x1], fg[y0:y1, x0:x1]
             # En dibujos de bloques grandes se busca la cuadrícula; en dibujos finos no hace falta.
             oy, ox = best_grid(lab, m, args.scale) if args.scale >= 3 else (0, 0)
-            small = downsample(lab, m, args.scale, oy, ox, bg)
+            small = downsample(lab, m, args.scale, oy, ox, bg, args.min_cover)
             ys, xs = np.nonzero(small != bg)
             small = small[ys.min():ys.max() + 1, xs.min():xs.max() + 1]
             if (r, c) in flips:
