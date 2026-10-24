@@ -41,13 +41,13 @@ async function watchAnims(page, ms) {
   for (let t = 0; t < ms; t += 40) { await state(page); await sleep(40); }
 }
 
-async function boot(context, label) {
+async function boot(context, label, query = "") {
   const page = await context.newPage();
   const errors = [];
   page.on("pageerror", (e) => errors.push(String(e)));
   page.on("console", (m) => { if (m.type() === "error") errors.push(m.text()); });
   const t0 = Date.now();
-  await page.goto(URL_);
+  await page.goto(URL_ + query);
   await page.waitForFunction(() => window.__eclipse && JSON.parse(window.__eclipse).player?.on_floor, null, { timeout: 90000 });
   check(`${label}: el juego carga`, true, `${((Date.now() - t0) / 1000).toFixed(1)} s`);
   return { page, errors };
@@ -174,6 +174,47 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   check("Táctil: al soltar, el pollito se detiene", Math.abs(s3.player.x - (await state(page)).player.x) < 1 && s3.player.on_floor);
   check("Táctil: se detecta 'Táctil'", s3.device === "Táctil", `device=${s3.device}`);
   check("Táctil: sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await context.close();
+}
+
+// ---------- Vida: Santuario, daño, invulnerabilidad, muerte y reaparición ----------
+{
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const { page, errors } = await boot(context, "Vida", "?pruebas");
+  await page.mouse.click(640, 360);
+  await page.keyboard.down("ArrowRight"); await sleep(600); await page.keyboard.up("ArrowRight");
+  const s0 = await state(page);
+  check("Vida: tocar el Santuario lo guarda como punto de reaparición", Math.abs(s0.player.respawn_x - 150) < 1 && s0.player.hp === 100, `respawn_x=${s0.player.respawn_x}`);
+
+  // Justo antes de las espinas (x 1040-1104), caminando hacia ellas.
+  await page.evaluate(() => window.__eclipseTeleport(1010, 320));
+  await sleep(300);
+  await page.keyboard.down("ArrowRight");
+  const timeline = [];
+  let lastHp = 100, sawHurt = false;
+  const t0 = Date.now();
+  while (Date.now() - t0 < 12000) {
+    const s = await state(page);
+    if (s.player.anim === "hurt") sawHurt = true;
+    if (s.player.hp < lastHp) timeline.push({ t: Date.now() - t0, hp: s.player.hp, x: s.player.x });
+    lastHp = s.player.hp;
+    if (s.player.deaths >= 1) break;
+    await sleep(30);
+  }
+  await page.keyboard.up("ArrowRight");
+  check("Vida: las espinas quitan vida y se ve la animación de daño", timeline.length > 0 && timeline[0].hp === 75 && sawHurt, timeline.map((e) => e.hp).join(" → "));
+  const gaps = timeline.slice(1).map((e, i) => e.t - timeline[i].t);
+  check("Vida: después de un golpe hay invulnerabilidad (golpes separados)", gaps.every((g) => g >= 700), `separación ms: ${gaps.join(", ")}`);
+
+  const sDead = await state(page);
+  check("Vida: con 0 de vida el Pollito muere", sDead.player.deaths === 1 && sDead.player.state === "dead", `state=${sDead.player.state} deaths=${sDead.player.deaths}`);
+  await page.screenshot({ path: path.join(SHOTS, "vida-muerte.png") });
+  await page.waitForFunction(() => JSON.parse(window.__eclipse).player.state !== "dead", null, { timeout: 5000 }).catch(() => {});
+  await sleep(300);
+  const sBack = await state(page);
+  check("Vida: reaparece en el Santuario con la vida llena", Math.abs(sBack.player.x - 150) < 4 && sBack.player.hp === 100, `x=${sBack.player.x.toFixed(0)} hp=${sBack.player.hp}`);
+  await page.screenshot({ path: path.join(SHOTS, "vida-santuario.png") });
+  check("Vida: sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
   await context.close();
 }
 

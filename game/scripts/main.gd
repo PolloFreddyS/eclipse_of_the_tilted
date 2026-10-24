@@ -1,10 +1,13 @@
 extends Node2D
-## Prueba técnica: una sala con plataformas, un muñeco de práctica, la cámara
-## siguiendo al pollito y los controles táctiles encima.
+## Prueba técnica: una sala con plataformas, un Santuario de Discord, espinas, un muñeco
+## de práctica, la cámara siguiendo al pollito, la barra de vida y los controles táctiles.
 
 const Player := preload("res://scripts/player.gd")
 const Dummy := preload("res://scripts/dummy.gd")
 const TouchControls := preload("res://scripts/touch_controls.gd")
+const Sanctuary := preload("res://scripts/sanctuary.gd")
+const Spikes := preload("res://scripts/spikes.gd")
+const Hud := preload("res://scripts/hud.gd")
 
 const ROOM_SIZE := Vector2(1280, 360)
 const BLOCKS := [
@@ -17,12 +20,20 @@ const BLOCKS := [
 	Rect2(900, 280, 80, 48),
 ]
 
-var _hud: Label
+var _debug: Label
 
 
 func _ready() -> void:
 	for r: Rect2 in BLOCKS:
 		_add_block(r)
+
+	var sanctuary := Sanctuary.new()
+	sanctuary.position = Vector2(150, 328)
+	add_child(sanctuary)
+
+	var spikes := Spikes.new()
+	spikes.position = Vector2(1040, 328)
+	add_child(spikes)
 
 	var dummy := Dummy.new()
 	dummy.position = Vector2(760, 328)
@@ -43,10 +54,15 @@ func _ready() -> void:
 
 	var ui := CanvasLayer.new()
 	add_child(ui)
-	_hud = Label.new()
-	_hud.position = Vector2(12, 8)
-	_hud.add_theme_font_size_override("font_size", 10)
-	ui.add_child(_hud)
+	var hud := Hud.new()
+	ui.add_child(hud)
+	hud.bind(player)
+	sanctuary.activated.connect(func() -> void: hud.notify("Santuario de Discord"))
+	_debug = Label.new()
+	_debug.position = Vector2(10, 22)
+	_debug.add_theme_font_size_override("font_size", 8)
+	_debug.modulate.a = 0.6
+	ui.add_child(_debug)
 	ui.add_child(TouchControls.new())
 
 
@@ -63,7 +79,7 @@ func _add_block(r: Rect2) -> void:
 
 func _process(_delta: float) -> void:
 	var dummy := get_tree().get_first_node_in_group("dummy")
-	_hud.text = "Entrada: %s   ·   Golpes al muñeco: %d" % [Controls.device_name(), dummy.hits]
+	_debug.text = "Entrada: %s · Golpes al muñeco: %d" % [Controls.device_name(), dummy.hits]
 
 
 func _draw() -> void:

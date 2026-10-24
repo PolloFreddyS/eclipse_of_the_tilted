@@ -1,16 +1,30 @@
 extends Node
 ## Solo en la versión web: publica el estado del juego en window.__eclipse para que
 ## las pruebas automáticas (Playwright) puedan verificar movimiento y controles.
+## Con ?pruebas en la URL también acepta window.__eclipseTeleport(x, y), para llevar al
+## Pollito directo a la zona que se quiere probar.
 
 const INTERVAL := 0.1
 
 var _window: JavaScriptObject
+var _teleport_callback: JavaScriptObject  # se guarda para que no lo libere el recolector
 var _elapsed := 0.0
 
 
 func _ready() -> void:
-	if OS.has_feature("web"):
-		_window = JavaScriptBridge.get_interface("window")
+	if not OS.has_feature("web"):
+		return
+	_window = JavaScriptBridge.get_interface("window")
+	if "pruebas" in str(JavaScriptBridge.eval("location.search")):
+		_teleport_callback = JavaScriptBridge.create_callback(_teleport)
+		_window.__eclipseTeleport = _teleport_callback
+
+
+func _teleport(args: Array) -> void:
+	var player := get_tree().get_first_node_in_group("player")
+	if player:
+		player.global_position = Vector2(float(args[0]), float(args[1]))
+		player.velocity = Vector2.ZERO
 
 
 func _process(delta: float) -> void:
@@ -32,6 +46,9 @@ func _process(delta: float) -> void:
 			"jumps": player.jumps,
 			"attacks": player.attacks,
 			"dodges": player.dodges,
+			"hp": player.hp,
+			"deaths": player.deaths,
+			"respawn_x": player.respawn_point.x,
 		}
 	var dummy := get_tree().get_first_node_in_group("dummy")
 	if dummy:
