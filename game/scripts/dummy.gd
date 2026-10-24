@@ -18,7 +18,7 @@ func _ready() -> void:
 	add_child(shape)
 
 
-func hit(_from_dir: int) -> void:
+func hit(_from_dir: int, _damage: int) -> void:
 	hits += 1
 	_flash = 0.15
 

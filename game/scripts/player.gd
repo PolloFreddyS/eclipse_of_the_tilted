@@ -26,6 +26,21 @@ const INVULN_TIME := 0.9       # invulnerable después de un golpe
 const KNOCKBACK := Vector2(170, -220)
 const RESPAWN_DELAY := 1.4
 
+## Hoja del Pollito (assets/pollito/pollito.png): nombre -> [fila, cuadros, cuadros por segundo, se repite]
+const SHEET := preload("res://assets/pollito/pollito.png")
+const FRAME := 48
+const ANIMATIONS := {
+	"idle": [0, 4, 6.0, true],
+	"run": [1, 6, 12.0, true],
+	"jump": [2, 2, 8.0, false],
+	"fall": [3, 2, 8.0, true],
+	"attack": [4, 4, 18.0, false],
+	"dodge": [5, 4, 22.0, false],
+	"hurt": [6, 2, 8.0, false],
+}
+
+const ATTACK_DAMAGE := 10
+
 const LAYER_WORLD := 1
 const LAYER_ENEMY := 2
 
@@ -64,8 +79,8 @@ func _ready() -> void:
 
 	# Los pies quedan en el origen del cuerpo; el cuerpo del pollito está algo a la derecha del centro del cuadro.
 	_sprite = AnimatedSprite2D.new()
-	_sprite.sprite_frames = PollitoFrames.build()
-	_sprite.offset = Vector2(-2, -PollitoFrames.FRAME / 2.0 + 1.0)
+	_sprite.sprite_frames = SheetFrames.build(SHEET, FRAME, ANIMATIONS)
+	_sprite.offset = Vector2(-2, -FRAME / 2.0 + 1.0)
 	_sprite.play("idle")
 	add_child(_sprite)
 
@@ -79,13 +94,14 @@ func is_invulnerable() -> bool:
 
 
 ## Recibe un golpe. Devuelve false si no hizo efecto (esquivando o invulnerable).
-func hurt(amount: int, from_x: float) -> bool:
+## force multiplica el retroceso (los golpes pesados empujan más).
+func hurt(amount: int, from_x: float, force := 1.0) -> bool:
 	if is_invulnerable():
 		return false
 	hp = max(hp - amount, 0)
 	health_changed.emit(hp, MAX_HP)
 	var away := 1.0 if global_position.x >= from_x else -1.0
-	velocity = Vector2(KNOCKBACK.x * away, KNOCKBACK.y)
+	velocity = Vector2(KNOCKBACK.x * away * force, KNOCKBACK.y)
 	_hurt_timer = HURT_TIME
 	_invuln_timer = INVULN_TIME
 	_attack_timer = 0.0
@@ -225,4 +241,4 @@ func _strike() -> void:
 	for hit in get_world_2d().direct_space_state.intersect_shape(query):
 		var target: Object = hit["collider"]
 		if target.has_method("hit"):
-			target.hit(facing)
+			target.hit(facing, ATTACK_DAMAGE)

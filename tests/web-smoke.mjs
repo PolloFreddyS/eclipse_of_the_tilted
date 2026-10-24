@@ -187,7 +187,7 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   check("Vida: tocar el Santuario lo guarda como punto de reaparición", Math.abs(s0.player.respawn_x - 150) < 1 && s0.player.hp === 100, `respawn_x=${s0.player.respawn_x}`);
 
   // Justo antes de las espinas (x 1040-1104), caminando hacia ellas.
-  await page.evaluate(() => window.__eclipseTeleport(1010, 320));
+  await page.evaluate(() => window.__eclipseCmd("teleport", 1010, 320));
   await sleep(300);
   await page.keyboard.down("ArrowRight");
   const timeline = [];
@@ -215,6 +215,95 @@ const browser = await chromium.launch({ executablePath: CHROMIUM, args: ["--use-
   check("Vida: reaparece en el Santuario con la vida llena", Math.abs(sBack.player.x - 150) < 4 && sBack.player.hp === 100, `x=${sBack.player.x.toFixed(0)} hp=${sBack.player.hp}`);
   await page.screenshot({ path: path.join(SHOTS, "vida-santuario.png") });
   check("Vida: sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await context.close();
+}
+
+// ---------- King Chiki, fase I ----------
+async function waitFor(page, pred, ms) {
+  const t0 = Date.now();
+  while (Date.now() - t0 < ms) { const s = await state(page); if (pred(s)) return s; await sleep(40); }
+  return state(page);
+}
+// Se pone detrás de King Chiki, mira hacia él y le pega una vez.
+async function hitFromBehind(page) {
+  const s = await state(page);
+  await page.evaluate(([x]) => window.__eclipseCmd("teleport", x, 230), [s.boss.x - s.boss.facing * 30]);
+  const toward = s.boss.facing > 0 ? "ArrowRight" : "ArrowLeft";  // detrás de él, mirando hacia él
+  await page.keyboard.down(toward); await sleep(30); await page.keyboard.up(toward);
+  await page.keyboard.press("j"); await sleep(120);
+}
+{
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const { page, errors } = await boot(context, "Jefe", "?pruebas&sala=jefe");
+  await page.mouse.click(640, 360);
+  const s0 = await state(page);
+  check("Jefe: la arena carga con King Chiki esperando", s0.boss?.state === "waiting" && s0.sealed === false, `state=${s0.boss?.state}`);
+
+  await page.keyboard.down("ArrowRight");
+  const s1 = await waitFor(page, (s) => s.boss.state !== "waiting", 4000);
+  await page.keyboard.up("ArrowRight");
+  check("Jefe: al avanzar se sella la entrada y dice su frase", s1.sealed === true && s1.boss.speech.includes("DIAMANTE"), s1.boss.speech);
+
+  // De frente, 4 golpes seguidos contra el escudo durante su pausa inicial.
+  await page.evaluate(([x]) => window.__eclipseCmd("teleport", x, 230), [s1.boss.x - 40]);
+  for (let i = 0; i < 4; i++) { await page.keyboard.press("j"); await sleep(240); }
+  const s2 = await state(page);
+  check("Jefe: de frente el escudo bloquea (no pierde vida)", s2.boss.hp === 200 && s2.boss.blocked >= 4, `hp=${s2.boss.hp} bloqueados=${s2.boss.blocked}`);
+  check("Jefe: tras muchos golpes al escudo grita y contraataca", s2.boss.counters >= 1 && s2.boss.speech.includes("APRENDE"), s2.boss.speech);
+  const s3 = await waitFor(page, (s) => s.player.hp < 100, 2500);
+  check("Jefe: el golpe de escudo le hace daño al Pollito", s3.player.hp < 100, `vida del Pollito=${s3.player.hp}`);
+  await page.screenshot({ path: path.join(SHOTS, "jefe-contraataque.png") });
+
+  await sleep(1200);
+  const before = (await state(page)).boss.hp;
+  await hitFromBehind(page);
+  const s4 = await state(page);
+  check("Jefe: por detrás sí le hace daño", s4.boss.hp < before, `hp ${before} → ${s4.boss.hp}`);
+
+  await page.evaluate(() => window.__eclipseCmd("teleport", 200, 230));
+  await page.evaluate(() => window.__eclipseCmd("player_hp", 100));
+  let sawMark = false, sawLine = false;
+  const t0 = Date.now();
+  while (Date.now() - t0 < 12000 && !(sawMark && sawLine)) {
+    const s = await state(page);
+    if (s.marks_warning > 0) sawMark = true;
+    if (s.boss.speech.includes("POR AHÍ NO")) sawLine = true;
+    if (sawMark) await page.screenshot({ path: path.join(SHOTS, "jefe-por-ahi-no.png") });
+    await sleep(60);
+  }
+  check("Jefe: ¡POR AHÍ NO! marca la zona antes de explotar y grita su frase", sawMark && sawLine, `marca=${sawMark} frase=${sawLine}`);
+
+  await page.evaluate(() => window.__eclipseCmd("player_hp", 100));
+  await page.evaluate(() => window.__eclipseCmd("boss_hp", 5));
+  await sleep(300);
+  let s5 = await state(page);
+  for (let i = 0; i < 4 && s5.boss.state !== "defeated"; i++) { await sleep(700); await hitFromBehind(page); s5 = await state(page); }
+  await sleep(300);
+  s5 = await state(page);
+  check("Jefe: con 0 de vida queda derrotado y se abre la entrada", s5.boss.state === "defeated" && s5.sealed === false, `state=${s5.boss.state} sellado=${s5.sealed}`);
+  await page.screenshot({ path: path.join(SHOTS, "jefe-derrotado.png") });
+  check("Jefe: sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
+  await context.close();
+}
+{
+  // Si el Pollito cae durante la pelea, todo vuelve a empezar desde el Santuario.
+  const context = await browser.newContext({ viewport: { width: 1280, height: 720 } });
+  const { page, errors } = await boot(context, "Jefe (reinicio)", "?pruebas&sala=jefe");
+  await page.mouse.click(640, 360);
+  await page.keyboard.down("ArrowRight");
+  const s1 = await waitFor(page, (s) => s.boss.state !== "waiting", 4000);
+  await page.keyboard.up("ArrowRight");
+  await page.evaluate(() => window.__eclipseCmd("boss_hp", 120));
+  await page.evaluate(() => window.__eclipseCmd("player_hp", 1));
+  await page.evaluate(([x]) => window.__eclipseCmd("teleport", x, 230), [s1.boss.x - 50]);
+  const sDead = await waitFor(page, (s) => s.player.deaths >= 1, 12000);
+  const sBack = await waitFor(page, (s) => s.player.state !== "dead", 4000);
+  await sleep(300);
+  const s2 = await state(page);
+  check("Jefe (reinicio): al caer vuelve al Santuario y la pelea se reinicia",
+    sDead.player.deaths === 1 && s2.player.hp === 100 && s2.boss.hp === 200 && s2.boss.state === "waiting" && s2.sealed === false,
+    `muertes=${sDead.player.deaths} vida=${s2.player.hp} jefe=${s2.boss.hp} ${s2.boss.state} sellado=${s2.sealed}`);
+  check("Jefe (reinicio): sin errores en consola", errors.length === 0, errors.slice(0, 3).join(" | "));
   await context.close();
 }
 
