@@ -1,0 +1,20 @@
+{
+  "_comentario": "Pose de reposo de King Chiki armada con las piezas de piezas-original.webp. Coordenadas en píxeles de la imagen original. part: recuadro de la pieza; center: dónde va su centro; pivot: punto desde el que gira; parent: pieza de la que cuelga; scale/rot/flip: ajuste de la pieza. El orden es el de dibujo (de atrás hacia adelante).",
+  "origin": [360, 690],
+  "game_scale": 0.18,
+  "parts": [
+    {"name": "cape",       "box": [29, 346, 431, 629],    "center": [480, 470], "scale": 1.45, "pivot": [430, 380], "parent": "torso"},
+    {"name": "tail",       "box": [465, 364, 681, 577],   "center": [650, 430], "scale": 1.0,  "pivot": [600, 440], "parent": "hips"},
+    {"name": "thigh_back", "box": [1178, 370, 1310, 499], "center": [470, 500], "scale": 1.0,  "pivot": [470, 450], "parent": "hips"},
+    {"name": "shin_back",  "box": [1319, 396, 1450, 586], "center": [480, 600], "scale": 1.0,  "pivot": [475, 540], "parent": "thigh_back"},
+    {"name": "arm_back",   "box": [749, 67, 963, 314],    "center": [520, 380], "scale": 1.0,  "pivot": [470, 330], "parent": "torso"},
+    {"name": "scepter",    "box": [997, 12, 1187, 375],   "center": [165, 330], "scale": 1.45, "pivot": [150, 455], "parent": "arm_front"},
+    {"name": "arm_front",  "box": [541, 67, 718, 315],    "center": [215, 400], "scale": 0.9, "rot": -15, "flip": true, "pivot": [270, 345], "parent": "torso"},
+    {"name": "torso",      "box": [245, 51, 533, 324],    "center": [335, 390], "scale": 1.0,  "pivot": [345, 520], "parent": "hips"},
+    {"name": "banner",     "box": [721, 367, 821, 569],   "center": [318, 505], "scale": 1.0,  "pivot": [318, 425], "parent": "torso"},
+    {"name": "leg_front",  "box": [875, 362, 1022, 591],  "center": [245, 570], "scale": 1.0,  "pivot": [255, 480], "parent": "hips"},
+    {"name": "head",       "box": [47, 43, 231, 272],     "center": [330, 225], "scale": 1.0,  "pivot": [335, 300], "parent": "torso"},
+    {"name": "shield",     "box": [1204, 26, 1513, 375],  "center": [565, 455], "scale": 1.05, "pivot": [520, 420], "parent": "arm_back"}
+  ],
+  "hips": [360, 520]
+}

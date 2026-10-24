@@ -19,6 +19,7 @@ static func spawn(parent: Node, at: Vector2, kind: String, color: Color, directi
 	fx.direction = direction
 	fx.size = size
 	fx.life = life
+	fx.z_index = 30  # los efectos siempre encima de los personajes
 	parent.add_child(fx)
 
 

@@ -33,6 +33,7 @@ func build_blocks() -> void:
 func spawn_player(at: Vector2) -> void:
 	player = Player.new()
 	player.position = at
+	player.z_index = 20  # por encima de los jefes armados por piezas
 	add_child(player)
 
 	camera = Camera2D.new()

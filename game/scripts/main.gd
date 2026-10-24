@@ -9,10 +9,13 @@ const Door := preload("res://scripts/door.gd")
 
 
 func _ready() -> void:
-	# En la web, ?sala=jefe abre directo la arena (útil para probar).
-	if OS.has_feature("web") and "sala=jefe" in str(JavaScriptBridge.eval("location.search")):
-		get_tree().change_scene_to_file.call_deferred("res://scenes/arena.tscn")
-		return
+	# En la web, ?sala=jefe abre directo la arena y ?sala=rig la comparación de King Chiki.
+	if OS.has_feature("web"):
+		var query := str(JavaScriptBridge.eval("location.search"))
+		for room in [["sala=jefe", "res://scenes/arena.tscn"], ["sala=rig", "res://scenes/rig_preview.tscn"]]:
+			if room[0] in query:
+				get_tree().change_scene_to_file.call_deferred(room[1])
+				return
 
 	room_size = Vector2(1280, 360)
 	blocks = [
